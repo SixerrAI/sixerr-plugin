@@ -1,4 +1,4 @@
-import { forwardToOpenClaw, type OpenClawClientConfig } from "./openclaw-client.js";
+import { forwardToOpenClaw, streamFromOpenClaw, type OpenClawClientConfig } from "./openclaw-client.js";
 import { convertToolsToClientTools } from "./tool-converter.js";
 
 // ---------------------------------------------------------------------------
@@ -9,10 +9,11 @@ import { convertToolsToClientTools } from "./tool-converter.js";
  * Handle an incoming request from the Switchboard server.
  *
  * 1. Clones the body to avoid mutation
- * 2. Enforces stream: false
- * 3. Converts tools to clientTools format (RELAY-03 defense-in-depth)
- * 4. Forwards to OpenClaw Gateway via HTTP POST
- * 5. Sends response or error back via sendMessage callback
+ * 2. Converts tools to clientTools format (RELAY-03 defense-in-depth)
+ * 3. Branches on stream: true vs stream: false
+ *    - Streaming: calls streamFromOpenClaw, forwards events as stream_event WS messages
+ *    - Non-streaming: calls forwardToOpenClaw, sends response WS message
+ * 4. Sends error WS message on failure
  */
 export async function handleIncomingRequest(
   requestId: string,
@@ -23,24 +24,53 @@ export async function handleIncomingRequest(
   try {
     // Clone the body to avoid mutating the original
     const forwardBody = { ...(body as Record<string, unknown>) };
-
-    // Enforce stream: false (non-streaming relay)
-    forwardBody.stream = false;
+    const isStreaming = forwardBody.stream === true;
 
     // Convert tools to clientTools format (RELAY-03 defense-in-depth)
     if (Array.isArray(forwardBody.tools)) {
       forwardBody.tools = convertToolsToClientTools(forwardBody.tools);
     }
 
-    // Forward to OpenClaw Gateway
-    const response = await forwardToOpenClaw(openClawConfig, forwardBody);
+    if (isStreaming) {
+      // Streaming path: consume SSE from OpenClaw, forward events over WS
+      let usage = { input_tokens: 0, output_tokens: 0, total_tokens: 0 };
 
-    // Send success response back to server
-    sendMessage({
-      type: "response",
-      id: requestId,
-      body: response,
-    });
+      await streamFromOpenClaw(openClawConfig, forwardBody, {
+        onEvent(event: unknown) {
+          sendMessage({ type: "stream_event", id: requestId, event });
+
+          // Extract usage from response.completed event
+          const evt = event as { type?: string; response?: { usage?: typeof usage } };
+          if (evt.type === "response.completed" && evt.response?.usage) {
+            usage = evt.response.usage;
+          }
+        },
+        onError(err: Error) {
+          sendMessage({
+            type: "error",
+            id: requestId,
+            code: "plugin_error",
+            message: err.message,
+          });
+        },
+        onDone() {
+          sendMessage({ type: "stream_end", id: requestId, usage });
+        },
+      });
+    } else {
+      // Non-streaming path (existing behavior)
+      forwardBody.stream = false;
+
+      // Forward to OpenClaw Gateway
+      const response = await forwardToOpenClaw(openClawConfig, forwardBody);
+
+      // Send success response back to server
+      sendMessage({
+        type: "response",
+        id: requestId,
+        body: response,
+      });
+    }
   } catch (err) {
     // Send error back to server
     sendMessage({
