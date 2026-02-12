@@ -96,3 +96,134 @@ export function forwardToOpenClaw(
     req.end();
   });
 }
+
+// ---------------------------------------------------------------------------
+// StreamCallbacks + streamFromOpenClaw (Phase 4 Streaming)
+// ---------------------------------------------------------------------------
+
+export interface StreamCallbacks {
+  onEvent: (event: unknown) => void;
+  onError: (err: Error) => void;
+  onDone: () => void;
+}
+
+/**
+ * Stream a request to the local OpenClaw Gateway via HTTP POST with SSE.
+ *
+ * Same HTTP endpoint as `forwardToOpenClaw` but adds `Accept: text/event-stream`
+ * and parses the SSE response stream, invoking callbacks for each event.
+ *
+ * Always resolves (never rejects) -- errors are reported through `callbacks.onError`.
+ * This ensures the caller (request-forwarder) can always send error WS messages.
+ */
+export function streamFromOpenClaw(
+  config: OpenClawClientConfig,
+  requestBody: unknown,
+  callbacks: StreamCallbacks,
+): Promise<void> {
+  return new Promise((resolve) => {
+    const url = new URL("/v1/responses", config.gatewayUrl);
+    const isHttps = url.protocol === "https:";
+    const transport = isHttps ? https : http;
+
+    const bodyStr = JSON.stringify(requestBody);
+    const bodyBytes = Buffer.byteLength(bodyStr, "utf-8");
+    const timeoutMs = config.timeoutMs ?? 120_000;
+
+    const options: http.RequestOptions = {
+      hostname: url.hostname,
+      port: url.port || (isHttps ? 443 : 80),
+      path: url.pathname + url.search,
+      method: "POST",
+      timeout: timeoutMs,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Length": bodyBytes,
+        Authorization: `Bearer ${config.gatewayToken}`,
+        Accept: "text/event-stream",
+      },
+    };
+
+    const req = transport.request(options, (res) => {
+      // On HTTP error response: collect body, call onError, resolve
+      if (res.statusCode !== undefined && res.statusCode >= 400) {
+        const chunks: Buffer[] = [];
+        res.on("data", (chunk: Buffer) => chunks.push(chunk));
+        res.on("end", () => {
+          const body = Buffer.concat(chunks).toString("utf-8");
+          callbacks.onError(
+            new Error(
+              `OpenClaw Gateway error (status ${res.statusCode}): ${body.slice(0, 500)}`,
+            ),
+          );
+          resolve();
+        });
+        return;
+      }
+
+      // Parse SSE from the IncomingMessage readable stream
+      const decoder = new TextDecoder("utf-8", { fatal: false });
+      let buffer = "";
+
+      res.on("data", (chunk: Buffer) => {
+        buffer += decoder.decode(chunk, { stream: true });
+
+        // Split on double newline to find complete SSE events
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() ?? ""; // Keep the last incomplete part
+
+        for (const part of parts) {
+          if (!part.trim()) continue;
+
+          // Detect [DONE] sentinel -- skip it (do NOT JSON.parse)
+          if (part.trim() === "data: [DONE]") {
+            continue;
+          }
+
+          // Parse event: and data: fields from lines
+          let dataStr = "";
+          for (const line of part.split("\n")) {
+            if (line.startsWith("event: ")) {
+              // eventType consumed but not needed for callback -- caller gets full parsed object
+            } else if (line.startsWith("data: ")) {
+              dataStr += (dataStr ? "\n" : "") + line.slice(6);
+            }
+          }
+
+          if (dataStr) {
+            try {
+              const parsed = JSON.parse(dataStr);
+              callbacks.onEvent(parsed);
+            } catch {
+              console.warn(
+                `[OpenClaw SSE] Failed to parse event data: ${dataStr.slice(0, 100)}`,
+              );
+            }
+          }
+        }
+      });
+
+      res.on("end", () => {
+        callbacks.onDone();
+        resolve();
+      });
+
+      res.on("error", (err) => {
+        callbacks.onError(err);
+        resolve();
+      });
+    });
+
+    req.on("timeout", () => {
+      req.destroy(new Error("OpenClaw Gateway streaming request timed out"));
+    });
+
+    req.on("error", (err) => {
+      callbacks.onError(err);
+      resolve();
+    });
+
+    req.write(bodyStr);
+    req.end();
+  });
+}
