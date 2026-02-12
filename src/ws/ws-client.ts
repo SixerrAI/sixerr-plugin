@@ -1,5 +1,7 @@
 import WebSocket from "ws";
 import { ServerMessageSchema, SWITCHBOARD_PROTOCOL_VERSION } from "../schemas/protocol.js";
+import type { OpenClawClientConfig } from "../relay/openclaw-client.js";
+import { handleIncomingRequest } from "../relay/request-forwarder.js";
 import { rawDataToString } from "./raw-data.js";
 import { computeBackoff, DEFAULT_RECONNECT_POLICY, type BackoffPolicy } from "./reconnect.js";
 
@@ -14,6 +16,7 @@ export interface PluginClientConfig {
   apiKey: string; // sb_plugin_... key
   onStatusChange: (status: ConnectionStatus, pluginId: string | null, requestCount: number) => void;
   reconnectPolicy?: BackoffPolicy; // defaults to DEFAULT_RECONNECT_POLICY
+  openClawConfig: OpenClawClientConfig; // OpenClaw Gateway connection settings
 }
 
 // ---------------------------------------------------------------------------
@@ -144,10 +147,23 @@ export class PluginClient {
         this.sendMessage({ type: "pong", ts: msg.ts });
         break;
 
-      case "request":
-        // Phase 3 will handle request forwarding
-        console.log(`Received request ${msg.id} (ignored in Phase 2)`);
+      case "request": {
+        // Forward to OpenClaw asynchronously -- do not await in message handler
+        handleIncomingRequest(
+          msg.id,
+          msg.body,
+          this.config.openClawConfig,
+          (response) => this.sendMessage(response),
+        ).then(() => {
+          this.requestCount++;
+          this.config.onStatusChange("connected", this.pluginId, this.requestCount);
+        }).catch((err) => {
+          // handleIncomingRequest already sends error via sendMessage,
+          // but log unexpected errors
+          console.error(`[Request ${msg.id}] Unexpected error:`, err);
+        });
         break;
+      }
     }
   }
 

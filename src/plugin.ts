@@ -9,6 +9,9 @@ import { createStatusDisplay } from "./ws/display.js";
 export interface PluginConfig {
   serverUrl: string; // ws://host:port or wss://host:port
   apiKey: string; // sb_plugin_... API key
+  openClawUrl?: string; // default "http://localhost:18789"
+  openClawToken: string; // OPENCLAW_GATEWAY_TOKEN (required)
+  openClawTimeoutMs?: number; // default 120_000
 }
 
 export interface PluginHandle {
@@ -34,6 +37,11 @@ export function startPlugin(config: PluginConfig): PluginHandle {
     serverUrl: config.serverUrl,
     apiKey: config.apiKey,
     onStatusChange: display.update,
+    openClawConfig: {
+      gatewayUrl: config.openClawUrl ?? "http://localhost:18789",
+      gatewayToken: config.openClawToken,
+      timeoutMs: config.openClawTimeoutMs,
+    },
   });
 
   client.start();
@@ -54,10 +62,12 @@ const isDirectExecution = process.argv[1] && thisFile.endsWith(process.argv[1].r
 if (isDirectExecution) {
   const serverUrl = process.env["SWITCHBOARD_SERVER_URL"];
   const apiKey = process.env["SWITCHBOARD_PLUGIN_KEY"];
+  const openClawToken = process.env["OPENCLAW_GATEWAY_TOKEN"];
+  const openClawUrl = process.env["OPENCLAW_GATEWAY_URL"] ?? "http://localhost:18789";
 
-  if (!serverUrl || !apiKey) {
+  if (!serverUrl || !apiKey || !openClawToken) {
     console.error(
-      "Usage: SWITCHBOARD_SERVER_URL=ws://host:port SWITCHBOARD_PLUGIN_KEY=sb_plugin_... npx tsx src/plugin.ts",
+      "Usage: SWITCHBOARD_SERVER_URL=ws://... SWITCHBOARD_PLUGIN_KEY=sb_plugin_... OPENCLAW_GATEWAY_TOKEN=... npx tsx src/plugin.ts",
     );
     process.exit(1);
   }
@@ -65,8 +75,9 @@ if (isDirectExecution) {
   const display = createStatusDisplay();
   display.log("Switchboard Plugin v0.1.0");
   display.log(`Server: ${serverUrl}`);
+  display.log(`OpenClaw Gateway: ${openClawUrl}`);
 
-  const handle = startPlugin({ serverUrl, apiKey });
+  const handle = startPlugin({ serverUrl, apiKey, openClawToken, openClawUrl });
 
   const shutdown = () => {
     display.log("Shutting down...");

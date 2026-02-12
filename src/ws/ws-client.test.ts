@@ -102,6 +102,10 @@ describe("PluginClient", () => {
         factor: 2,
         jitter: 0,
       },
+      openClawConfig: {
+        gatewayUrl: "http://127.0.0.1:18789",
+        gatewayToken: "test-token",
+      },
       ...overrides,
     });
     return client;
