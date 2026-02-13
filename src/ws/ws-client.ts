@@ -18,6 +18,11 @@ export interface PluginClientConfig {
   onJwtRefresh?: (newJwt: string) => void; // callback when server sends a refresh
   reconnectPolicy?: BackoffPolicy; // defaults to DEFAULT_RECONNECT_POLICY
   openClawConfig: OpenClawClientConfig; // OpenClaw Gateway connection settings
+  /** Optional per-token pricing declaration (DISC-01). Sent in auth handshake. */
+  pricing?: {
+    inputTokenPrice: string;  // Atomic USDC per token
+    outputTokenPrice: string; // Atomic USDC per token
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -89,6 +94,11 @@ export class PluginClient {
         type: "auth",
         jwt: this.config.jwt,
         protocol: SWITCHBOARD_PROTOCOL_VERSION,
+        // Phase 7: Include pricing if configured (DISC-01)
+        ...(this.config.pricing ? {
+          inputTokenPrice: this.config.pricing.inputTokenPrice,
+          outputTokenPrice: this.config.pricing.outputTokenPrice,
+        } : {}),
       });
     });
 

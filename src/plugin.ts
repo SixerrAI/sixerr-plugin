@@ -15,6 +15,11 @@ export interface PluginConfig {
   openClawUrl?: string; // default "http://localhost:18789"
   openClawToken: string; // OPENCLAW_GATEWAY_TOKEN (required)
   openClawTimeoutMs?: number; // default 120_000
+  /** Optional per-token pricing for marketplace discovery (DISC-01). */
+  pricing?: {
+    inputTokenPrice: string;  // Atomic USDC per token
+    outputTokenPrice: string; // Atomic USDC per token
+  };
 }
 
 export interface PluginHandle {
@@ -57,6 +62,8 @@ export function startPlugin(config: PluginConfig): PluginHandle {
       gatewayToken: config.openClawToken,
       timeoutMs: config.openClawTimeoutMs,
     },
+    // Phase 7: Pass pricing config if provided
+    pricing: config.pricing,
   });
 
   client.start();
@@ -92,6 +99,19 @@ if (isDirectExecution) {
   display.log(`Server: ${serverUrl}`);
   display.log(`OpenClaw Gateway: ${openClawUrl}`);
 
+  // Phase 7: Optional pricing from env vars (DISC-01)
+  const inputTokenPrice = process.env["INPUT_TOKEN_PRICE"];
+  const outputTokenPrice = process.env["OUTPUT_TOKEN_PRICE"];
+  if ((inputTokenPrice && !outputTokenPrice) || (!inputTokenPrice && outputTokenPrice)) {
+    display.log("Warning: Both INPUT_TOKEN_PRICE and OUTPUT_TOKEN_PRICE must be set. Ignoring partial pricing.");
+  }
+  const pricing = (inputTokenPrice && outputTokenPrice)
+    ? { inputTokenPrice, outputTokenPrice }
+    : undefined;
+  if (pricing) {
+    display.log(`Pricing: ${pricing.inputTokenPrice} input / ${pricing.outputTokenPrice} output (atomic USDC/token)`);
+  }
+
   // Try loading stored credentials
   const creds = await loadCredentials();
   let jwt = process.env["SWITCHBOARD_JWT"];
@@ -121,7 +141,7 @@ if (isDirectExecution) {
     display.log("Authentication successful. JWT saved.");
   }
 
-  const handle = startPlugin({ serverUrl, jwt, openClawToken, openClawUrl });
+  const handle = startPlugin({ serverUrl, jwt, openClawToken, openClawUrl, pricing });
 
   const shutdown = () => {
     display.log("Shutting down...");

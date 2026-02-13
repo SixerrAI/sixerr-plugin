@@ -62,6 +62,9 @@ export const PluginAuthMessageSchema = z.strictObject({
   type: z.literal("auth"),
   jwt: z.string().min(1),
   protocol: z.literal(SWITCHBOARD_PROTOCOL_VERSION),
+  // Phase 7: Optional pricing declaration (DISC-01)
+  inputTokenPrice: z.string().optional(),   // Atomic USDC per token
+  outputTokenPrice: z.string().optional(),  // Atomic USDC per token
 });
 
 export const PluginResponseMessageSchema = z.strictObject({
