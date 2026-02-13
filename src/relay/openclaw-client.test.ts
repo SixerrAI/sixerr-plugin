@@ -1,7 +1,6 @@
 import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
 import * as http from "node:http";
 import { forwardToOpenClaw, streamFromOpenClaw, type OpenClawClientConfig, type StreamCallbacks } from "./openclaw-client.js";
-import { convertToolsToClientTools } from "./tool-converter.js";
 import { handleIncomingRequest } from "./request-forwarder.js";
 
 // ---------------------------------------------------------------------------
@@ -157,116 +156,6 @@ describe("forwardToOpenClaw", () => {
 });
 
 // ---------------------------------------------------------------------------
-// convertToolsToClientTools tests
-// ---------------------------------------------------------------------------
-
-describe("convertToolsToClientTools", () => {
-  it("converts valid tools to ClientToolDefinition[]", () => {
-    const tools = [
-      {
-        type: "function",
-        function: {
-          name: "get_weather",
-          description: "Get weather data",
-          parameters: { type: "object", properties: { city: { type: "string" } } },
-        },
-      },
-    ];
-
-    const result = convertToolsToClientTools(tools);
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
-      type: "function",
-      function: {
-        name: "get_weather",
-        description: "Get weather data",
-        parameters: { type: "object", properties: { city: { type: "string" } } },
-      },
-    });
-  });
-
-  it("strips extra fields not in ClientToolDefinition shape", () => {
-    const tools = [
-      {
-        type: "function",
-        function: {
-          name: "foo",
-          description: "bar",
-          parameters: {},
-          execute: "malicious",
-        },
-        extra: true,
-      },
-    ];
-
-    const result = convertToolsToClientTools(tools);
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
-      type: "function",
-      function: {
-        name: "foo",
-        description: "bar",
-        parameters: {},
-      },
-    });
-
-    // Verify extra fields are NOT present
-    const output = result[0] as unknown as Record<string, unknown>;
-    expect(output).not.toHaveProperty("extra");
-    const fn = output.function as Record<string, unknown>;
-    expect(fn).not.toHaveProperty("execute");
-  });
-
-  it("skips invalid tools (wrong type or missing function.name)", () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    const tools = [
-      { type: "other" },
-      { type: "function", function: {} }, // missing name
-      { type: "function", function: { name: "valid_tool" } },
-    ];
-
-    const result = convertToolsToClientTools(tools);
-    expect(result).toHaveLength(1);
-    expect(result[0].function.name).toBe("valid_tool");
-    expect(warnSpy).toHaveBeenCalledTimes(2);
-
-    warnSpy.mockRestore();
-  });
-
-  it("returns empty array for empty input", () => {
-    const result = convertToolsToClientTools([]);
-    expect(result).toEqual([]);
-  });
-
-  it("handles tools with only name (no description, no parameters)", () => {
-    const tools = [{ type: "function", function: { name: "simple_tool" } }];
-
-    const result = convertToolsToClientTools(tools);
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
-      type: "function",
-      function: { name: "simple_tool" },
-    });
-    // Verify no undefined description or parameters
-    expect(result[0].function).not.toHaveProperty("description");
-    expect(result[0].function).not.toHaveProperty("parameters");
-  });
-
-  it("skips non-object entries", () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    const tools = ["not an object", 42, null, { type: "function", function: { name: "ok" } }];
-
-    const result = convertToolsToClientTools(tools);
-    expect(result).toHaveLength(1);
-    expect(result[0].function.name).toBe("ok");
-
-    warnSpy.mockRestore();
-  });
-});
-
-// ---------------------------------------------------------------------------
 // handleIncomingRequest tests
 // ---------------------------------------------------------------------------
 
@@ -354,7 +243,7 @@ describe("handleIncomingRequest", () => {
     expect(capturedBody.stream).toBe(false);
   });
 
-  it("converts tools to clientTools format before forwarding (strips extra fields)", async () => {
+  it("passes tools through as-is to OpenClaw (gateway handles security via agent config)", async () => {
     let capturedBody: Record<string, unknown> = {};
     const mock = await createMockServer(async (req, res) => {
       const raw = await collectBody(req);
@@ -367,7 +256,7 @@ describe("handleIncomingRequest", () => {
     const messages: unknown[] = [];
     const sendMessage = (msg: unknown) => messages.push(msg);
 
-    const bodyWithUnsanitizedTools = {
+    const bodyWithTools = {
       model: "test",
       input: "hello",
       tools: [
@@ -377,33 +266,28 @@ describe("handleIncomingRequest", () => {
             name: "test_tool",
             description: "A test tool",
             parameters: { type: "object" },
-            execute: "bad_payload",
           },
-          extra: true,
         },
       ],
     };
 
     await handleIncomingRequest(
       "req-tools",
-      bodyWithUnsanitizedTools,
+      bodyWithTools,
       { gatewayUrl: mock.url, gatewayToken: "tok" },
       sendMessage,
     );
 
-    // Verify the forwarded body has sanitized tools
     const forwardedTools = capturedBody.tools as Array<Record<string, unknown>>;
     expect(forwardedTools).toHaveLength(1);
 
     const tool = forwardedTools[0];
     expect(tool.type).toBe("function");
-    expect(tool).not.toHaveProperty("extra");
 
     const fn = tool.function as Record<string, unknown>;
     expect(fn.name).toBe("test_tool");
     expect(fn.description).toBe("A test tool");
     expect(fn.parameters).toEqual({ type: "object" });
-    expect(fn).not.toHaveProperty("execute");
   });
 });
 
@@ -642,7 +526,7 @@ describe("handleIncomingRequest - streaming", () => {
     expect(capturedBody.stream).toBe(true);
   });
 
-  it("streaming request converts tools to clientTools", async () => {
+  it("streaming request passes tools through as-is", async () => {
     let capturedBody: Record<string, unknown> = {};
     const mock = await createMockServer(async (req, res) => {
       const raw = await collectBody(req);
@@ -655,7 +539,7 @@ describe("handleIncomingRequest - streaming", () => {
     const messages: unknown[] = [];
     const sendMessage = (msg: unknown) => messages.push(msg);
 
-    const bodyWithUnsanitizedTools = {
+    const bodyWithTools = {
       model: "test",
       input: "hello",
       stream: true,
@@ -666,31 +550,27 @@ describe("handleIncomingRequest - streaming", () => {
             name: "test_tool",
             description: "A test tool",
             parameters: { type: "object" },
-            execute: "bad_payload",
           },
-          extra: true,
         },
       ],
     };
 
     await handleIncomingRequest(
       "req-stream-tools",
-      bodyWithUnsanitizedTools,
+      bodyWithTools,
       { gatewayUrl: mock.url, gatewayToken: "tok" },
       sendMessage,
     );
 
-    // Verify the forwarded body has sanitized tools
     const forwardedTools = capturedBody.tools as Array<Record<string, unknown>>;
     expect(forwardedTools).toHaveLength(1);
 
     const tool = forwardedTools[0];
     expect(tool.type).toBe("function");
-    expect(tool).not.toHaveProperty("extra");
 
     const fn = tool.function as Record<string, unknown>;
     expect(fn.name).toBe("test_tool");
-    expect(fn).not.toHaveProperty("execute");
+    expect(fn.description).toBe("A test tool");
   });
 
   it("streaming request sends error message on OpenClaw failure", async () => {

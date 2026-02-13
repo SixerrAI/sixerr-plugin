@@ -1,5 +1,4 @@
 import { forwardToOpenClaw, streamFromOpenClaw, type OpenClawClientConfig } from "./openclaw-client.js";
-import { convertToolsToClientTools } from "./tool-converter.js";
 
 // ---------------------------------------------------------------------------
 // handleIncomingRequest
@@ -26,10 +25,10 @@ export async function handleIncomingRequest(
     const forwardBody = { ...(body as Record<string, unknown>) };
     const isStreaming = forwardBody.stream === true;
 
-    // Convert tools to clientTools format (RELAY-03 defense-in-depth)
-    if (Array.isArray(forwardBody.tools)) {
-      forwardBody.tools = convertToolsToClientTools(forwardBody.tools);
-    }
+    // NOTE: tools are passed through as-is. The compute-relay agent has
+    // tools deny [*] configured in OpenClaw, which prevents execution on
+    // the plugin owner's machine. clientTools conversion is handled by
+    // the OpenClaw gateway based on agent config.
 
     if (isStreaming) {
       // Streaming path: consume SSE from OpenClaw, forward events over WS
