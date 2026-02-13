@@ -1,8 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { PluginClient } from "./ws/ws-client.js";
 import { createStatusDisplay } from "./ws/display.js";
-import { loadCredentials, saveCredentials } from "./auth/credentials.js";
-import { authenticatePlugin } from "./auth/setup.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -45,17 +43,9 @@ export function startPlugin(config: PluginConfig): PluginHandle {
     serverUrl: config.serverUrl,
     jwt: config.jwt,
     onStatusChange: display.update,
-    onJwtRefresh: async (newJwt) => {
-      try {
-        await saveCredentials({
-          jwt: newJwt,
-          agentId: "", // Will be populated from stored creds
-          serverUrl: config.serverUrl,
-          issuedAt: new Date().toISOString(),
-        });
-      } catch (err) {
-        console.error("Failed to save refreshed JWT:", err);
-      }
+    onJwtRefresh: async (_newJwt) => {
+      // JWT refresh is handled in-memory by the WS client.
+      // No persistence needed -- the start command re-authenticates each session.
     },
     openClawConfig: {
       gatewayUrl: config.openClawUrl ?? "http://localhost:18789",
@@ -82,73 +72,9 @@ const thisFile = fileURLToPath(import.meta.url);
 const isDirectExecution = process.argv[1] && thisFile.endsWith(process.argv[1].replace(/\\/g, "/"));
 
 if (isDirectExecution) {
-  const serverUrl = process.env["SWITCHBOARD_SERVER_URL"];
-  const openClawToken = process.env["OPENCLAW_GATEWAY_TOKEN"];
-  const openClawUrl = process.env["OPENCLAW_GATEWAY_URL"] ?? "http://localhost:18789";
-
-  if (!serverUrl || !openClawToken) {
-    console.error(
-      "Usage: SWITCHBOARD_SERVER_URL=ws://... OPENCLAW_GATEWAY_TOKEN=... npx tsx src/plugin.ts",
-    );
-    console.error("Optional: SWITCHBOARD_JWT=... (or stored credentials will be used)");
-    process.exit(1);
-  }
-
-  const display = createStatusDisplay();
-  display.log("Switchboard Plugin v0.1.0");
-  display.log(`Server: ${serverUrl}`);
-  display.log(`OpenClaw Gateway: ${openClawUrl}`);
-
-  // Phase 7: Optional pricing from env vars (DISC-01)
-  const inputTokenPrice = process.env["INPUT_TOKEN_PRICE"];
-  const outputTokenPrice = process.env["OUTPUT_TOKEN_PRICE"];
-  if ((inputTokenPrice && !outputTokenPrice) || (!inputTokenPrice && outputTokenPrice)) {
-    display.log("Warning: Both INPUT_TOKEN_PRICE and OUTPUT_TOKEN_PRICE must be set. Ignoring partial pricing.");
-  }
-  const pricing = (inputTokenPrice && outputTokenPrice)
-    ? { inputTokenPrice, outputTokenPrice }
-    : undefined;
-  if (pricing) {
-    display.log(`Pricing: ${pricing.inputTokenPrice} input / ${pricing.outputTokenPrice} output (atomic USDC/token)`);
-  }
-
-  // Try loading stored credentials
-  const creds = await loadCredentials();
-  let jwt = process.env["SWITCHBOARD_JWT"];
-
-  if (!jwt && creds) {
-    jwt = creds.jwt;
-    display.log("Loaded JWT from stored credentials");
-  }
-
-  if (!jwt) {
-    // No JWT available -- run setup flow
-    const switchboardUrl = process.env["SWITCHBOARD_SERVER_URL"];
-    if (!switchboardUrl) {
-      console.error("No JWT found. Set SWITCHBOARD_JWT or run setup.");
-      process.exit(1);
-    }
-    // Convert ws:// to http:// for the auth URL
-    const httpUrl = switchboardUrl.replace(/^ws/, "http");
-    display.log("No JWT found. Starting browser authentication...");
-    jwt = await authenticatePlugin(httpUrl);
-    await saveCredentials({
-      jwt,
-      agentId: "unknown", // Server doesn't echo agentId in callback
-      serverUrl,
-      issuedAt: new Date().toISOString(),
-    });
-    display.log("Authentication successful. JWT saved.");
-  }
-
-  const handle = startPlugin({ serverUrl, jwt, openClawToken, openClawUrl, pricing });
-
-  const shutdown = () => {
-    display.log("Shutting down...");
-    handle.stop();
-    process.exit(0);
-  };
-
-  process.on("SIGINT", shutdown);
-  process.on("SIGTERM", shutdown);
+  console.error("Direct execution is deprecated.");
+  console.error("Use the CLI instead:");
+  console.error("  npx tsx src/cli/cli.ts setup   — First-time configuration");
+  console.error("  npx tsx src/cli/cli.ts start   — Connect to server");
+  process.exit(1);
 }
