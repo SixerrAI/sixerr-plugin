@@ -163,7 +163,7 @@ onboard_openclaw() {
 }
 
 # ---------------------------------------------------------------------------
-# Configure OpenClaw for Switchboard
+# Configure OpenClaw for Sixerr
 # ---------------------------------------------------------------------------
 
 configure_openclaw() {
@@ -206,11 +206,21 @@ configure_openclaw() {
     ui_warn "Could not read gateway token — you'll need to enter it manually during setup"
   fi
 
+  # 4. Restart gateway so config changes take effect
+  ui_info "Restarting OpenClaw gateway..."
+  openclaw gateway --force &>/dev/null &
+  sleep 3
+  if curl -sf http://localhost:18789/health &>/dev/null; then
+    ui_success "Gateway restarted with new config"
+  else
+    ui_warn "Gateway may still be starting — if plugin can't connect, run 'openclaw gateway --force'"
+  fi
+
   ui_success "OpenClaw configured for Sixerr"
 }
 
 # ---------------------------------------------------------------------------
-# Switchboard plugin
+# Sixerr plugin
 # ---------------------------------------------------------------------------
 
 install_plugin() {
