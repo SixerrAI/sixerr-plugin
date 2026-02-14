@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// OpenClaw plugin entry point — registers Switchboard as a model provider
+// OpenClaw plugin entry point — registers Sixerr as a model provider
 // ---------------------------------------------------------------------------
 
 import { loadConfig } from "../config/store.js";
@@ -47,9 +47,9 @@ function httpUrlFromConfig(serverUrl: string): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Register Switchboard as an OpenClaw model provider.
+ * Register Sixerr as an OpenClaw model provider.
  *
- * Reads config from ~/.switchboard/config.json. If no JWT is present
+ * Reads config from ~/.sixerr/config.json. If no JWT is present
  * (plugin hasn't authenticated yet), silently skips registration.
  *
  * Model list is fetched best-effort from GET /v1/providers. Stale data
@@ -65,8 +65,8 @@ export async function register(api: OpenClawPluginApi): Promise<void> {
   const models = buildModelList(providers);
 
   api.registerProvider({
-    id: "switchboard",
-    label: "Switchboard",
+    id: "sixerr",
+    label: "Sixerr",
     models: {
       baseUrl,
       apiKey: config.jwt,

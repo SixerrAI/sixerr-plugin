@@ -20,7 +20,7 @@ import {
   getServerUrl,
   loadConfig,
 } from "../config/store.js";
-import type { SwitchboardConfig } from "../config/schema.js";
+import type { SixerrConfig } from "../config/schema.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -38,7 +38,7 @@ function handleCancel(value: unknown): asserts value is string | boolean {
 // ---------------------------------------------------------------------------
 
 export async function runSetup(): Promise<void> {
-  intro("Switchboard Plugin Setup");
+  intro("Sixerr Plugin Setup");
 
   // Check for existing config
   const existing = await loadConfig();
@@ -218,7 +218,7 @@ export async function runSetup(): Promise<void> {
   // OpenClaw config
   // -------------------------------------------------------------------------
 
-  const envToken = process.env.SWITCHBOARD_OPENCLAW_TOKEN;
+  const envToken = process.env.SIXERR_OPENCLAW_TOKEN;
   let openClawToken: string;
   if (envToken) {
     log.info(`Using gateway token from environment.`);
@@ -240,7 +240,7 @@ export async function runSetup(): Promise<void> {
   // Build and save config
   // -------------------------------------------------------------------------
 
-  const config: SwitchboardConfig = {
+  const config: SixerrConfig = {
     version: 1,
     walletType,
     walletAddress,

@@ -21,17 +21,17 @@ import type { WalletSigner } from "../wallet/types.js";
 // ---------------------------------------------------------------------------
 
 /**
- * Start the Switchboard Plugin:
- *   1. Load config from ~/.switchboard/config.json
+ * Start the Sixerr Plugin:
+ *   1. Load config from ~/.sixerr/config.json
  *   2. Resolve wallet signer (Coinbase auto-connect, or local/imported with password)
- *   3. Authenticate with the Switchboard server (challenge-sign-verify)
+ *   3. Authenticate with the Sixerr server (challenge-sign-verify)
  *   4. Launch WebSocket client
  *
  * Password is prompted BEFORE fetching the challenge to avoid nonce expiry
  * (5-minute TTL on server challenges).
  */
 export async function runStart(): Promise<void> {
-  intro("Switchboard Plugin");
+  intro("Sixerr Plugin");
 
   // -------------------------------------------------------------------------
   // 1. Load config
@@ -122,7 +122,7 @@ export async function runStart(): Promise<void> {
     m === "https" ? "wss" : "ws",
   );
 
-  log.info("Connecting to Switchboard...");
+  log.info("Connecting to Sixerr...");
   const handle = startPlugin({
     serverUrl: wsUrl,
     jwt: authJwt,

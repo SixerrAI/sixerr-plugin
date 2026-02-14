@@ -4,7 +4,7 @@ import {
   ServerMessageSchema,
   PluginMessageSchema,
   SCHEMA_VERSION,
-  SWITCHBOARD_PROTOCOL_VERSION,
+  SIXERR_PROTOCOL_VERSION,
 } from "./index.js";
 
 // ---------------------------------------------------------------------------
@@ -16,8 +16,8 @@ describe("Schema copy integrity", () => {
     expect(SCHEMA_VERSION).toBe(1);
   });
 
-  it("SWITCHBOARD_PROTOCOL_VERSION equals 2 (matches server)", () => {
-    expect(SWITCHBOARD_PROTOCOL_VERSION).toBe(2);
+  it("SIXERR_PROTOCOL_VERSION equals 2 (matches server)", () => {
+    expect(SIXERR_PROTOCOL_VERSION).toBe(2);
   });
 });
 

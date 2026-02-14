@@ -13,7 +13,7 @@ export interface CdpCredentials {
  */
 export async function createCdpSigner(
   credentials: CdpCredentials,
-  accountName: string = "switchboard-plugin",
+  accountName: string = "sixerr-plugin",
 ): Promise<WalletSigner> {
   const cdp = new CdpClient(credentials);
   const account = await cdp.evm.getOrCreateAccount({ name: accountName });

@@ -1,4 +1,4 @@
-// SOURCE OF TRUTH: switchboard-server/src/schemas/openresponses.ts
+// SOURCE OF TRUTH: sixerr-server/src/schemas/openresponses.ts
 // Adapted from openclaw/src/gateway/open-responses.schema.ts using Zod 4 z.strictObject()
 
 import { z } from "zod";

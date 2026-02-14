@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import { ServerMessageSchema, SWITCHBOARD_PROTOCOL_VERSION } from "../schemas/protocol.js";
+import { ServerMessageSchema, SIXERR_PROTOCOL_VERSION } from "../schemas/protocol.js";
 import type { OpenClawClientConfig } from "../relay/openclaw-client.js";
 import { handleIncomingRequest } from "../relay/request-forwarder.js";
 import { rawDataToString } from "./raw-data.js";
@@ -93,7 +93,7 @@ export class PluginClient {
       this.sendMessage({
         type: "auth",
         jwt: this.config.jwt,
-        protocol: SWITCHBOARD_PROTOCOL_VERSION,
+        protocol: SIXERR_PROTOCOL_VERSION,
         // Phase 7: Include pricing if configured (DISC-01)
         ...(this.config.pricing ? {
           inputTokenPrice: this.config.pricing.inputTokenPrice,

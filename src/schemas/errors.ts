@@ -1,8 +1,8 @@
-// SOURCE OF TRUTH: switchboard-server/src/schemas/errors.ts
+// SOURCE OF TRUTH: sixerr-server/src/schemas/errors.ts
 
 import { z } from "zod";
 
-export const SwitchboardErrorSchema = z.strictObject({
+export const SixerrErrorSchema = z.strictObject({
   error: z.strictObject({
     message: z.string(),
     type: z.string(),
@@ -10,4 +10,4 @@ export const SwitchboardErrorSchema = z.strictObject({
   }),
 });
 
-export type SwitchboardError = z.infer<typeof SwitchboardErrorSchema>;
+export type SixerrError = z.infer<typeof SixerrErrorSchema>;

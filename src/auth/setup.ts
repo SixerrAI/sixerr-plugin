@@ -9,7 +9,7 @@ import open from "open";
 const AUTH_TIMEOUT_MS = 300_000; // 5 minutes
 
 const SUCCESS_HTML = `<!DOCTYPE html>
-<html><head><title>Switchboard Auth</title></head>
+<html><head><title>Sixerr Auth</title></head>
 <body style="font-family:system-ui;text-align:center;padding:3em">
 <h1>Authentication successful!</h1>
 <p>You can close this window.</p>
@@ -20,14 +20,14 @@ const SUCCESS_HTML = `<!DOCTYPE html>
 // ---------------------------------------------------------------------------
 
 /**
- * Open the Switchboard auth page in the default browser, start a local
+ * Open the Sixerr auth page in the default browser, start a local
  * callback server, and wait for the JWT to arrive.
  *
- * @param switchboardServerUrl  HTTPS base URL of the Switchboard server
- *                              (e.g. "https://switchboard.example.com")
+ * @param sixerrServerUrl  HTTPS base URL of the Sixerr server
+ *                              (e.g. "https://sixerr.ai")
  * @returns the JWT string
  */
-export function authenticatePlugin(switchboardServerUrl: string): Promise<string> {
+export function authenticatePlugin(sixerrServerUrl: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     let settled = false;
     let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
@@ -71,7 +71,7 @@ export function authenticatePlugin(switchboardServerUrl: string): Promise<string
       }
 
       const port = addr.port;
-      const authUrl = `${switchboardServerUrl}/auth?callback=http://127.0.0.1:${port}/callback`;
+      const authUrl = `${sixerrServerUrl}/auth?callback=http://127.0.0.1:${port}/callback`;
 
       // Open browser — errors are non-fatal (user can navigate manually)
       open(authUrl).catch(() => {

@@ -5,7 +5,7 @@ import { forwardToOpenClaw, streamFromOpenClaw, type OpenClawClientConfig } from
 // ---------------------------------------------------------------------------
 
 /**
- * Handle an incoming request from the Switchboard server.
+ * Handle an incoming request from the Sixerr server.
  *
  * 1. Clones the body to avoid mutation
  * 2. Converts tools to clientTools format (RELAY-03 defense-in-depth)
@@ -32,7 +32,7 @@ export async function handleIncomingRequest(
 
     const isStreaming = forwardBody.stream === true;
 
-    // NOTE: tools are passed through as-is. The switchboard-default agent has
+    // NOTE: tools are passed through as-is. The sixerr-default agent has
     // tools deny [*] configured in OpenClaw, which prevents execution on
     // the plugin owner's machine. clientTools conversion is handled by
     // the OpenClaw gateway based on agent config.

@@ -1,4 +1,4 @@
-// SOURCE OF TRUTH: switchboard-server/src/ws/raw-data.ts
+// SOURCE OF TRUTH: sixerr-server/src/ws/raw-data.ts
 
 import type WebSocket from "ws";
 import { Buffer } from "node:buffer";

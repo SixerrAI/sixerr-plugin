@@ -1,5 +1,5 @@
 {
-  "name": "switchboard-plugin",
+  "name": "sixerr-plugin",
   "version": "0.1.0",
   "type": "module",
   "engines": {
@@ -9,7 +9,7 @@
     "./openclaw": "./src/openclaw/index.ts"
   },
   "bin": {
-    "switchboard": "src/cli/cli.ts"
+    "sixerr": "src/cli/cli.ts"
   },
   "scripts": {
     "setup": "tsx src/cli/cli.ts setup",

@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
 import { WebSocketServer, WebSocket as WsWebSocket } from "ws";
 import { PluginClient, type ConnectionStatus, type PluginClientConfig } from "./ws-client.js";
-import { SWITCHBOARD_PROTOCOL_VERSION } from "../schemas/protocol.js";
+import { SIXERR_PROTOCOL_VERSION } from "../schemas/protocol.js";
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -121,7 +121,7 @@ describe("PluginClient", () => {
 
     expect(msg.type).toBe("auth");
     expect(msg.jwt).toBe("eyJhbGciOiJFUzI1NiJ9.test-token");
-    expect(msg.protocol).toBe(SWITCHBOARD_PROTOCOL_VERSION);
+    expect(msg.protocol).toBe(SIXERR_PROTOCOL_VERSION);
   });
 
   it("transitions: connecting -> authenticating -> connected on auth_ok", async () => {
@@ -136,7 +136,7 @@ describe("PluginClient", () => {
     serverWs.send(JSON.stringify({
       type: "auth_ok",
       pluginId: "plugin-abc",
-      protocol: SWITCHBOARD_PROTOCOL_VERSION,
+      protocol: SIXERR_PROTOCOL_VERSION,
     }));
 
     await waitForStatus(statusChanges, "connected");
@@ -158,7 +158,7 @@ describe("PluginClient", () => {
     serverWs.send(JSON.stringify({
       type: "auth_ok",
       pluginId: "plugin-xyz",
-      protocol: SWITCHBOARD_PROTOCOL_VERSION,
+      protocol: SIXERR_PROTOCOL_VERSION,
     }));
 
     await waitForStatus(statusChanges, "connected");
@@ -177,7 +177,7 @@ describe("PluginClient", () => {
     serverWs.send(JSON.stringify({
       type: "auth_ok",
       pluginId: "p-1",
-      protocol: SWITCHBOARD_PROTOCOL_VERSION,
+      protocol: SIXERR_PROTOCOL_VERSION,
     }));
     await waitForStatus(statusChanges, "connected");
 
@@ -258,7 +258,7 @@ describe("PluginClient", () => {
     serverWs.send(JSON.stringify({
       type: "auth_ok",
       pluginId: "p-1",
-      protocol: SWITCHBOARD_PROTOCOL_VERSION,
+      protocol: SIXERR_PROTOCOL_VERSION,
     }));
     await waitForStatus(statusChanges, "connected");
 
@@ -291,7 +291,7 @@ describe("PluginClient", () => {
     serverWs.send(JSON.stringify({
       type: "auth_ok",
       pluginId: "p-1",
-      protocol: SWITCHBOARD_PROTOCOL_VERSION,
+      protocol: SIXERR_PROTOCOL_VERSION,
     }));
     await waitForStatus(statusChanges, "connected");
 
@@ -318,7 +318,7 @@ describe("PluginClient", () => {
     serverWs.send(JSON.stringify({
       type: "auth_ok",
       pluginId: "p-status",
-      protocol: SWITCHBOARD_PROTOCOL_VERSION,
+      protocol: SIXERR_PROTOCOL_VERSION,
     }));
 
     await waitForStatus(statusChanges, "connected");

@@ -9,10 +9,10 @@ if (command === "setup") {
   const { runStart } = await import("./start.js");
   await runStart();
 } else {
-  console.error("Switchboard Plugin CLI");
+  console.error("Sixerr Plugin CLI");
   console.error("");
   console.error("Usage:");
-  console.error("  switchboard setup   — First-time configuration wizard");
-  console.error("  switchboard start   — Connect to Switchboard server");
+  console.error("  sixerr setup   — First-time configuration wizard");
+  console.error("  sixerr start   — Connect to Sixerr server");
   process.exit(1);
 }

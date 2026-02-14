@@ -17,7 +17,7 @@ export interface ModelEntry {
 }
 
 /**
- * Fetch the list of connected providers from the Switchboard server.
+ * Fetch the list of connected providers from the Sixerr server.
  * Best-effort: returns empty array on network/parse errors.
  */
 export async function fetchProviderCatalog(

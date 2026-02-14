@@ -16,7 +16,7 @@ export interface AuthResult {
 // ---------------------------------------------------------------------------
 
 /**
- * Authenticate with the Switchboard server programmatically:
+ * Authenticate with the Sixerr server programmatically:
  *   1. GET /auth/challenge?address=0x... -> { nonce, message }
  *   2. Sign the message with the wallet signer (EIP-191)
  *   3. POST /auth/verify { address, nonce, signature } -> { jwt, ... }

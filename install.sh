@@ -2,23 +2,24 @@
 set -euo pipefail
 
 # =============================================================================
-# Switchboard Installer
+# Sixerr Installer
 #
 # One-command setup for plugin owners:
-#   curl -fsSL https://raw.githubusercontent.com/xamdel/switchboard-plugin/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/SixerrAI/sixerr-plugin/main/install.sh | bash
 #
 # Installs:
-#   ~/switchboard/openclaw/   — OpenClaw fork (dev/relay-integration)
-#   ~/switchboard/plugin/     — switchboard-plugin
-#   ~/.local/bin/openclaw     — CLI wrapper
+#   ~/sixerr/openclaw/   — OpenClaw fork (dev/relay-integration)
+#   ~/sixerr/plugin/     — sixerr-plugin
+#   ~/.local/bin/openclaw — CLI wrapper
+#   ~/.local/bin/sixerr   — CLI wrapper
 # =============================================================================
 
-SWITCHBOARD_DIR="$HOME/switchboard"
-OPENCLAW_DIR="$SWITCHBOARD_DIR/openclaw"
-PLUGIN_DIR="$SWITCHBOARD_DIR/plugin"
-OPENCLAW_REPO="https://github.com/xamdel/openclaw.git"
+SIXERR_DIR="$HOME/sixerr"
+OPENCLAW_DIR="$SIXERR_DIR/openclaw"
+PLUGIN_DIR="$SIXERR_DIR/plugin"
+OPENCLAW_REPO="https://github.com/SixerrAI/openclaw.git"
 OPENCLAW_BRANCH="dev/relay-integration"
-PLUGIN_REPO="https://github.com/xamdel/switchboard-plugin.git"
+PLUGIN_REPO="https://github.com/SixerrAI/sixerr-plugin.git"
 BIN_DIR="$HOME/.local/bin"
 
 # ---------------------------------------------------------------------------
@@ -89,7 +90,7 @@ check_prereqs() {
 install_openclaw() {
   ui_section "Installing OpenClaw fork"
 
-  mkdir -p "$SWITCHBOARD_DIR"
+  mkdir -p "$SIXERR_DIR"
 
   if [ -d "$OPENCLAW_DIR/.git" ]; then
     ui_info "Existing clone found — updating"
@@ -125,7 +126,7 @@ install_openclaw() {
   cat > "$BIN_DIR/openclaw" <<'WRAPPER'
 #!/usr/bin/env bash
 set -euo pipefail
-OPENCLAW_DIR="$HOME/switchboard/openclaw"
+OPENCLAW_DIR="$HOME/sixerr/openclaw"
 exec node "$OPENCLAW_DIR/dist/src/index.js" "$@"
 WRAPPER
   chmod +x "$BIN_DIR/openclaw"
@@ -166,15 +167,15 @@ onboard_openclaw() {
 # ---------------------------------------------------------------------------
 
 configure_openclaw() {
-  ui_section "Configuring OpenClaw for Switchboard"
+  ui_section "Configuring OpenClaw for Sixerr"
 
   # 1. Enable the HTTP /v1/responses endpoint (required for plugin relay)
   ui_info "Enabling HTTP responses endpoint"
   openclaw config set gateway.http.endpoints.responses.enabled true
 
-  # 2. Add switchboard-default agent with tools deny [*] (clientTools passthrough)
+  # 2. Add sixerr-default agent with tools deny [*] (clientTools passthrough)
   #    Reads existing agents list, appends only if not already present.
-  ui_info "Adding switchboard-default agent"
+  ui_info "Adding sixerr-default agent"
   local existing_agents
   existing_agents=$(openclaw config get agents.list --json 2>/dev/null || echo "null")
 
@@ -182,19 +183,19 @@ configure_openclaw() {
   new_agents=$(node -e "
     const existing = JSON.parse(process.argv[1]);
     const agents = Array.isArray(existing) ? existing : [];
-    if (agents.some(a => a.id === 'switchboard-default')) {
+    if (agents.some(a => a.id === 'sixerr-default')) {
       process.stdout.write('ALREADY_EXISTS');
     } else {
-      agents.push({ id: 'switchboard-default', tools: { deny: ['*'] } });
+      agents.push({ id: 'sixerr-default', tools: { deny: ['*'] } });
       process.stdout.write(JSON.stringify(agents));
     }
   " "$existing_agents")
 
   if [ "$new_agents" = "ALREADY_EXISTS" ]; then
-    ui_info "switchboard-default agent already exists"
+    ui_info "sixerr-default agent already exists"
   else
     openclaw config set agents.list "$new_agents" --json
-    ui_success "switchboard-default agent added"
+    ui_success "sixerr-default agent added"
   fi
 
   # 3. Read gateway token for plugin setup
@@ -205,7 +206,7 @@ configure_openclaw() {
     ui_warn "Could not read gateway token — you'll need to enter it manually during setup"
   fi
 
-  ui_success "OpenClaw configured for Switchboard"
+  ui_success "OpenClaw configured for Sixerr"
 }
 
 # ---------------------------------------------------------------------------
@@ -213,7 +214,7 @@ configure_openclaw() {
 # ---------------------------------------------------------------------------
 
 install_plugin() {
-  ui_section "Installing Switchboard plugin"
+  ui_section "Installing Sixerr plugin"
 
   if [ -d "$PLUGIN_DIR/.git" ]; then
     ui_info "Existing clone found — updating"
@@ -235,17 +236,17 @@ install_plugin() {
   ui_info "Installing dependencies (npm install)"
   npm install
 
-  # Create CLI wrapper at ~/.local/bin/switchboard
+  # Create CLI wrapper at ~/.local/bin/sixerr
   mkdir -p "$BIN_DIR"
-  cat > "$BIN_DIR/switchboard" <<'WRAPPER'
+  cat > "$BIN_DIR/sixerr" <<'WRAPPER'
 #!/usr/bin/env bash
 set -euo pipefail
-PLUGIN_DIR="$HOME/switchboard/plugin"
+PLUGIN_DIR="$HOME/sixerr/plugin"
 exec npx --prefix "$PLUGIN_DIR" tsx "$PLUGIN_DIR/src/cli/cli.ts" "$@"
 WRAPPER
-  chmod +x "$BIN_DIR/switchboard"
+  chmod +x "$BIN_DIR/sixerr"
 
-  ui_success "Plugin installed — CLI at $BIN_DIR/switchboard"
+  ui_success "Plugin installed — CLI at $BIN_DIR/sixerr"
 }
 
 # ---------------------------------------------------------------------------
@@ -258,7 +259,7 @@ run_setup_wizard() {
   printf "\n"
 
   cd "$PLUGIN_DIR"
-  SWITCHBOARD_OPENCLAW_TOKEN="${GATEWAY_TOKEN:-}" npx tsx src/cli/cli.ts setup
+  SIXERR_OPENCLAW_TOKEN="${GATEWAY_TOKEN:-}" npx tsx src/cli/cli.ts setup
 }
 
 # ---------------------------------------------------------------------------
@@ -268,12 +269,12 @@ run_setup_wizard() {
 main() {
   printf "\n"
   printf "${BOLD}${CYAN}  ╔═══════════════════════════════════════╗${RESET}\n"
-  printf "${BOLD}${CYAN}  ║      Switchboard Installer            ║${RESET}\n"
+  printf "${BOLD}${CYAN}  ║      Sixerr Installer                 ║${RESET}\n"
   printf "${BOLD}${CYAN}  ║      Monetize your agent's downtime    ║${RESET}\n"
   printf "${BOLD}${CYAN}  ╚═══════════════════════════════════════╝${RESET}\n"
   printf "\n"
-  printf "  ${DIM}Install dir:  ~/switchboard/${RESET}\n"
-  printf "  ${DIM}CLI wrappers: ~/.local/bin/openclaw, ~/.local/bin/switchboard${RESET}\n"
+  printf "  ${DIM}Install dir:  ~/sixerr/${RESET}\n"
+  printf "  ${DIM}CLI wrappers: ~/.local/bin/openclaw, ~/.local/bin/sixerr${RESET}\n"
   printf "\n"
 
   check_prereqs
@@ -286,7 +287,7 @@ main() {
   printf "\n"
   ui_section "All done!"
   printf "  To start monetizing your agent's downtime:\n"
-  printf "    ${BOLD}switchboard start${RESET}\n"
+  printf "    ${BOLD}sixerr start${RESET}\n"
   printf "\n"
 }
 

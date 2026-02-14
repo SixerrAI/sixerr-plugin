@@ -34,4 +34,4 @@ export const ConfigSchema = z.object({
   defaultModel: z.string().optional(),
 });
 
-export type SwitchboardConfig = z.infer<typeof ConfigSchema>;
+export type SixerrConfig = z.infer<typeof ConfigSchema>;

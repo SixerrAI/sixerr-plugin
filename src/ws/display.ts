@@ -14,10 +14,10 @@ export function createStatusDisplay(): StatusDisplay {
     update(status, pluginId, requestCount) {
       const statusText = formatStatus(status, pluginId, requestCount);
       // Write on new line (not overwriting) for cleaner log output
-      console.log(`[switchboard-plugin] ${statusText}`);
+      console.log(`[sixerr-plugin] ${statusText}`);
     },
     log(message) {
-      console.log(`[switchboard-plugin] ${message}`);
+      console.log(`[sixerr-plugin] ${message}`);
     },
   };
 }

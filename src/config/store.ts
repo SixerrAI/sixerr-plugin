@@ -1,13 +1,13 @@
 import { readFile, writeFile, mkdir, chmod } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
-import { ConfigSchema, type SwitchboardConfig } from "./schema.js";
+import { ConfigSchema, type SixerrConfig } from "./schema.js";
 
 // ---------------------------------------------------------------------------
 // Paths
 // ---------------------------------------------------------------------------
 
-export const CONFIG_DIR = join(homedir(), ".switchboard");
+export const CONFIG_DIR = join(homedir(), ".sixerr");
 export const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 export const KEYSTORE_DIR = join(CONFIG_DIR, "keystores");
 export const KEYSTORE_FILE = join(KEYSTORE_DIR, "wallet.json");
@@ -16,10 +16,10 @@ export const KEYSTORE_FILE = join(KEYSTORE_DIR, "wallet.json");
 // Server URL
 // ---------------------------------------------------------------------------
 
-const DEFAULT_SERVER_URL = "https://switchboard.example.com";
+const DEFAULT_SERVER_URL = "https://sixerr.ai";
 
 export function getServerUrl(): string {
-  return process.env.SWITCHBOARD_SERVER_URL ?? DEFAULT_SERVER_URL;
+  return process.env.SIXERR_SERVER_URL ?? DEFAULT_SERVER_URL;
 }
 
 // ---------------------------------------------------------------------------
@@ -27,9 +27,9 @@ export function getServerUrl(): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Persist plugin config to ~/.switchboard/config.json with 0600 perms.
+ * Persist plugin config to ~/.sixerr/config.json with 0600 perms.
  */
-export async function saveConfig(config: SwitchboardConfig): Promise<void> {
+export async function saveConfig(config: SixerrConfig): Promise<void> {
   await mkdir(CONFIG_DIR, { recursive: true });
   await writeFile(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
   await chmod(CONFIG_FILE, 0o600);
@@ -38,7 +38,7 @@ export async function saveConfig(config: SwitchboardConfig): Promise<void> {
 /**
  * Load and validate stored config. Returns null if missing or invalid.
  */
-export async function loadConfig(): Promise<SwitchboardConfig | null> {
+export async function loadConfig(): Promise<SixerrConfig | null> {
   try {
     const raw = await readFile(CONFIG_FILE, "utf-8");
     const parsed = JSON.parse(raw);
@@ -53,7 +53,7 @@ export async function loadConfig(): Promise<SwitchboardConfig | null> {
 // ---------------------------------------------------------------------------
 
 /**
- * Persist a V3 keystore JSON to ~/.switchboard/keystores/wallet.json
+ * Persist a V3 keystore JSON to ~/.sixerr/keystores/wallet.json
  * with 0600 file perms and 0700 directory perms.
  */
 export async function saveKeystore(keystore: unknown): Promise<void> {

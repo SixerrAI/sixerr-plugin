@@ -6,7 +6,7 @@ import { homedir } from "node:os";
 // Paths
 // ---------------------------------------------------------------------------
 
-export const CREDENTIALS_DIR = join(homedir(), ".switchboard");
+export const CREDENTIALS_DIR = join(homedir(), ".sixerr");
 export const CREDENTIALS_FILE = join(CREDENTIALS_DIR, "credentials.json");
 
 // ---------------------------------------------------------------------------
@@ -25,7 +25,7 @@ export interface StoredCredentials {
 // ---------------------------------------------------------------------------
 
 /**
- * Persist JWT credentials to ~/.switchboard/credentials.json with 0600 perms.
+ * Persist JWT credentials to ~/.sixerr/credentials.json with 0600 perms.
  */
 export async function saveCredentials(creds: StoredCredentials): Promise<void> {
   await mkdir(CREDENTIALS_DIR, { recursive: true });

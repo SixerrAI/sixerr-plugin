@@ -9,7 +9,7 @@ import * as crypto from "node:crypto";
 export interface OpenClawClientConfig {
   gatewayUrl: string; // e.g. "http://localhost:18789"
   gatewayToken: string; // OPENCLAW_GATEWAY_TOKEN
-  agentId?: string; // OpenClaw agent ID for session key routing (default "switchboard-default")
+  agentId?: string; // OpenClaw agent ID for session key routing (default "sixerr-default")
   timeoutMs?: number; // default 120_000
 }
 
@@ -48,7 +48,7 @@ export function forwardToOpenClaw(
         "Content-Type": "application/json; charset=utf-8",
         "Content-Length": bodyBytes,
         Authorization: `Bearer ${config.gatewayToken}`,
-        "X-OpenClaw-Session-Key": `agent:${config.agentId ?? "switchboard-default"}:subagent:${crypto.randomUUID()}`,
+        "X-OpenClaw-Session-Key": `agent:${config.agentId ?? "sixerr-default"}:subagent:${crypto.randomUUID()}`,
       },
     };
 
@@ -144,7 +144,7 @@ export function streamFromOpenClaw(
         "Content-Length": bodyBytes,
         Authorization: `Bearer ${config.gatewayToken}`,
         Accept: "text/event-stream",
-        "X-OpenClaw-Session-Key": `agent:${config.agentId ?? "switchboard-default"}:subagent:${crypto.randomUUID()}`,
+        "X-OpenClaw-Session-Key": `agent:${config.agentId ?? "sixerr-default"}:subagent:${crypto.randomUUID()}`,
       },
     };
 

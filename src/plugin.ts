@@ -9,7 +9,7 @@ import { createStatusDisplay } from "./ws/display.js";
 export interface PluginConfig {
   serverUrl: string; // ws://host:port or wss://host:port
   jwt: string; // JWT token for WebSocket auth
-  switchboardServerUrl?: string; // HTTPS URL for setup flow (e.g. "https://switchboard.example.com")
+  sixerrServerUrl?: string; // HTTPS URL for setup flow (e.g. "https://sixerr.ai")
   openClawUrl?: string; // default "http://localhost:18789"
   openClawToken: string; // OPENCLAW_GATEWAY_TOKEN (required)
   openClawTimeoutMs?: number; // default 120_000

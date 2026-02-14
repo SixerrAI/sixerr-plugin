@@ -1,4 +1,4 @@
-// SOURCE OF TRUTH: switchboard-server/src/schemas/protocol.ts
+// SOURCE OF TRUTH: sixerr-server/src/schemas/protocol.ts
 
 import { z } from "zod";
 
@@ -6,7 +6,7 @@ import { z } from "zod";
 // Protocol Version (PROT-03)
 // ---------------------------------------------------------------------------
 
-export const SWITCHBOARD_PROTOCOL_VERSION = 2 as const;
+export const SIXERR_PROTOCOL_VERSION = 2 as const;
 
 // ---------------------------------------------------------------------------
 // Server -> Plugin Messages
@@ -26,7 +26,7 @@ export const ServerPingMessageSchema = z.strictObject({
 export const ServerAuthOkMessageSchema = z.strictObject({
   type: z.literal("auth_ok"),
   pluginId: z.string().min(1),
-  protocol: z.literal(SWITCHBOARD_PROTOCOL_VERSION),
+  protocol: z.literal(SIXERR_PROTOCOL_VERSION),
 });
 
 export const ServerAuthErrorMessageSchema = z.strictObject({
@@ -61,7 +61,7 @@ export type ServerJwtRefreshMessage = z.infer<typeof ServerJwtRefreshMessageSche
 export const PluginAuthMessageSchema = z.strictObject({
   type: z.literal("auth"),
   jwt: z.string().min(1),
-  protocol: z.literal(SWITCHBOARD_PROTOCOL_VERSION),
+  protocol: z.literal(SIXERR_PROTOCOL_VERSION),
   // Phase 7: Optional pricing declaration (DISC-01)
   inputTokenPrice: z.string().optional(),   // Atomic USDC per token
   outputTokenPrice: z.string().optional(),  // Atomic USDC per token
