@@ -259,7 +259,7 @@ main() {
   printf "\n"
   printf "${BOLD}${CYAN}  ╔═══════════════════════════════════════╗${RESET}\n"
   printf "${BOLD}${CYAN}  ║      Switchboard Installer            ║${RESET}\n"
-  printf "${BOLD}${CYAN}  ║      Sell your idle inference time     ║${RESET}\n"
+  printf "${BOLD}${CYAN}  ║      Monetize your agent's downtime    ║${RESET}\n"
   printf "${BOLD}${CYAN}  ╚═══════════════════════════════════════╝${RESET}\n"
   printf "\n"
   printf "  ${DIM}Install dir:  ~/switchboard/${RESET}\n"
@@ -275,7 +275,7 @@ main() {
 
   printf "\n"
   ui_section "All done!"
-  printf "  To start selling inference time:\n"
+  printf "  To start monetizing your agent's downtime:\n"
   printf "    ${BOLD}cd ~/switchboard/plugin && npx tsx src/cli/cli.ts start${RESET}\n"
   printf "\n"
 }
