@@ -97,7 +97,7 @@ export async function runStart(): Promise<void> {
   const authSpinner = spinner();
   authSpinner.start("Authenticating with server...");
   try {
-    const authResult = await authenticateProgrammatic(config.serverUrl, signer);
+    const authResult = await authenticateProgrammatic(config.serverUrl, signer, config.agentCard?.agentId);
     authJwt = authResult.jwt;
     authSpinner.stop(`Authenticated as ${authResult.identitySource} identity`);
     log.info(`Wallet: ${authResult.walletAddress}`);
@@ -129,6 +129,8 @@ export async function runStart(): Promise<void> {
     openClawToken: config.openClawToken,
     openClawUrl: config.openClawUrl,
     pricing: config.pricing,
+    agentName: config.agentCard?.name,
+    agentDescription: config.agentCard?.description,
   });
 
   outro("Plugin is online. Press Ctrl+C to stop.");

@@ -18,6 +18,10 @@ export interface PluginConfig {
     inputTokenPrice: string;  // Atomic USDC per token
     outputTokenPrice: string; // Atomic USDC per token
   };
+  /** Optional agent display name from setup (Phase 11). */
+  agentName?: string;
+  /** Optional agent description from setup (Phase 11). */
+  agentDescription?: string;
 }
 
 export interface PluginHandle {
@@ -54,6 +58,9 @@ export function startPlugin(config: PluginConfig): PluginHandle {
     },
     // Phase 7: Pass pricing config if provided
     pricing: config.pricing,
+    // Phase 11: Pass agent identity if provided
+    agentName: config.agentName,
+    agentDescription: config.agentDescription,
   });
 
   client.start();

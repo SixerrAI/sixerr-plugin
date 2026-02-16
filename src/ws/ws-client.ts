@@ -23,6 +23,10 @@ export interface PluginClientConfig {
     inputTokenPrice: string;  // Atomic USDC per token
     outputTokenPrice: string; // Atomic USDC per token
   };
+  /** Optional agent display name from setup (Phase 11). */
+  agentName?: string;
+  /** Optional agent description from setup (Phase 11). */
+  agentDescription?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -99,6 +103,9 @@ export class PluginClient {
           inputTokenPrice: this.config.pricing.inputTokenPrice,
           outputTokenPrice: this.config.pricing.outputTokenPrice,
         } : {}),
+        // Phase 11: Include agent identity if configured
+        ...(this.config.agentName ? { agentName: this.config.agentName } : {}),
+        ...(this.config.agentDescription ? { agentDescription: this.config.agentDescription } : {}),
       });
     });
 

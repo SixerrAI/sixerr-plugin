@@ -26,6 +26,7 @@ export interface AuthResult {
 export async function authenticateProgrammatic(
   serverUrl: string,
   signer: WalletSigner,
+  agentId?: string,
 ): Promise<AuthResult> {
   // Step 1: Get challenge
   const challengeRes = await fetch(
@@ -47,7 +48,7 @@ export async function authenticateProgrammatic(
   const verifyRes = await fetch(`${serverUrl}/auth/verify`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ address: signer.address, nonce, signature }),
+    body: JSON.stringify({ address: signer.address, nonce, signature, ...(agentId ? { agentId } : {}) }),
   });
 
   if (!verifyRes.ok) {

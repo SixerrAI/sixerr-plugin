@@ -191,6 +191,70 @@ export async function runSetup(): Promise<void> {
   }
 
   // -------------------------------------------------------------------------
+  // Agent Identity
+  // -------------------------------------------------------------------------
+
+  let agentId = walletAddress;
+  let agentName = "";
+  let agentDescription = "";
+  let identitySource: "erc8004" | "local" = "local";
+
+  const serverUrl = getServerUrl();
+  let detectResult: { hasAgent: boolean; agentIds?: string[] } | null = null;
+
+  try {
+    const detectRes = await fetch(
+      `${serverUrl}/auth/detect?address=${walletAddress}`,
+    );
+    if (detectRes.ok) {
+      detectResult = (await detectRes.json()) as {
+        hasAgent: boolean;
+        agentIds?: string[];
+      };
+    }
+  } catch {
+    // Server unreachable — fall through to local profile
+  }
+
+  if (detectResult?.hasAgent && detectResult.agentIds?.length) {
+    const agentOptions = [
+      ...detectResult.agentIds.map((id) => ({
+        value: id,
+        label: `ERC-8004 Agent: ${id}`,
+      })),
+      { value: "__local__", label: "Create local profile instead" },
+    ];
+
+    const selectedAgent = await select({
+      message: "Select your agent identity:",
+      options: agentOptions,
+    });
+    handleCancel(selectedAgent);
+
+    if (selectedAgent !== "__local__") {
+      agentId = selectedAgent;
+      identitySource = "erc8004";
+    }
+  } else {
+    log.info("No on-chain agent identity found. Creating local profile.");
+  }
+
+  const nameInput = await text({
+    message: "Agent display name:",
+    placeholder: "My Sixerr Provider",
+    validate: (v) => (!v ? "Name is required" : undefined),
+  });
+  handleCancel(nameInput);
+  agentName = nameInput;
+
+  const descInput = await text({
+    message: "Agent description:",
+    placeholder: "Fast inference provider running Claude",
+  });
+  handleCancel(descInput);
+  agentDescription = descInput;
+
+  // -------------------------------------------------------------------------
   // Pricing
   // -------------------------------------------------------------------------
 
@@ -260,6 +324,12 @@ export async function runSetup(): Promise<void> {
           },
         }
       : {}),
+    agentCard: {
+      agentId,
+      name: agentName,
+      description: agentDescription,
+      identitySource,
+    },
   };
 
   await saveConfig(config);
@@ -269,7 +339,7 @@ export async function runSetup(): Promise<void> {
   // -------------------------------------------------------------------------
 
   note(
-    `Wallet:  ${walletAddress}\nType:    ${walletType}\nServer:  ${config.serverUrl}\nPricing: ${inputPrice} input / ${outputPrice} output\nGateway: ${openClawUrl || "http://localhost:18789"}`,
+    `Agent:   ${agentName}\nWallet:  ${walletAddress}\nType:    ${walletType}\nServer:  ${config.serverUrl}\nPricing: ${inputPrice} input / ${outputPrice} output\nGateway: ${openClawUrl || "http://localhost:18789"}`,
     "Configuration saved",
   );
 

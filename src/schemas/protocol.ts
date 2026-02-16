@@ -65,6 +65,9 @@ export const PluginAuthMessageSchema = z.strictObject({
   // Phase 7: Optional pricing declaration (DISC-01)
   inputTokenPrice: z.string().optional(),   // Atomic USDC per token
   outputTokenPrice: z.string().optional(),  // Atomic USDC per token
+  // Phase 11: Optional agent identity card
+  agentName: z.string().optional(),
+  agentDescription: z.string().optional(),
 });
 
 export const PluginResponseMessageSchema = z.strictObject({
