@@ -97,7 +97,9 @@ export async function runStart(): Promise<void> {
   const authSpinner = spinner();
   authSpinner.start("Authenticating with server...");
   try {
-    const authResult = await authenticateProgrammatic(config.serverUrl, signer, config.agentCard?.agentId);
+    // Only send agentId for ERC-8004 identities — local profiles use server's wallet-derived path
+    const agentId = config.agentCard?.identitySource === "erc8004" ? config.agentCard.agentId : undefined;
+    const authResult = await authenticateProgrammatic(config.serverUrl, signer, agentId);
     authJwt = authResult.jwt;
     authSpinner.stop(`Authenticated as ${authResult.identitySource} identity`);
     log.info(`Wallet: ${authResult.walletAddress}`);
