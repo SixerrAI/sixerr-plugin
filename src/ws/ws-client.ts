@@ -16,6 +16,7 @@ export interface PluginClientConfig {
   jwt: string; // JWT token for auth
   onStatusChange: (status: ConnectionStatus, pluginId: string | null, requestCount: number) => void;
   onJwtRefresh?: (newJwt: string) => void; // callback when server sends a refresh
+  onPriceUpdateAck?: (pricing: { inputTokenPrice: string; outputTokenPrice: string }) => void;
   reconnectPolicy?: BackoffPolicy; // defaults to DEFAULT_RECONNECT_POLICY
   openClawConfig: OpenClawClientConfig; // OpenClaw Gateway connection settings
   /** Optional per-token pricing declaration (DISC-01). Sent in auth handshake. */
@@ -79,6 +80,18 @@ export class PluginClient {
 
   getRequestCount(): number {
     return this.requestCount;
+  }
+
+  /**
+   * Send a dynamic price update to the server without reconnecting.
+   * Server will respond with a price_update_ack.
+   */
+  updatePricing(inputTokenPrice: string, outputTokenPrice: string): void {
+    this.sendMessage({
+      type: "price_update",
+      inputTokenPrice,
+      outputTokenPrice,
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -165,6 +178,21 @@ export class PluginClient {
         // Update the JWT for future reconnections
         this.config = { ...this.config, jwt: msg.jwt };
         this.config.onJwtRefresh?.(msg.jwt);
+        break;
+
+      case "price_update_ack":
+        // Update local pricing config for future reconnections
+        this.config = {
+          ...this.config,
+          pricing: {
+            inputTokenPrice: msg.inputTokenPrice,
+            outputTokenPrice: msg.outputTokenPrice,
+          },
+        };
+        this.config.onPriceUpdateAck?.({
+          inputTokenPrice: msg.inputTokenPrice,
+          outputTokenPrice: msg.outputTokenPrice,
+        });
         break;
 
       case "ping":

@@ -39,12 +39,19 @@ export const ServerJwtRefreshMessageSchema = z.strictObject({
   jwt: z.string().min(1),
 });
 
+export const ServerPriceUpdateAckMessageSchema = z.strictObject({
+  type: z.literal("price_update_ack"),
+  inputTokenPrice: z.string().min(1),
+  outputTokenPrice: z.string().min(1),
+});
+
 export const ServerMessageSchema = z.discriminatedUnion("type", [
   ServerRequestMessageSchema,
   ServerPingMessageSchema,
   ServerAuthOkMessageSchema,
   ServerAuthErrorMessageSchema,
   ServerJwtRefreshMessageSchema,
+  ServerPriceUpdateAckMessageSchema,
 ]);
 
 export type ServerMessage = z.infer<typeof ServerMessageSchema>;
@@ -53,6 +60,7 @@ export type ServerPingMessage = z.infer<typeof ServerPingMessageSchema>;
 export type ServerAuthOkMessage = z.infer<typeof ServerAuthOkMessageSchema>;
 export type ServerAuthErrorMessage = z.infer<typeof ServerAuthErrorMessageSchema>;
 export type ServerJwtRefreshMessage = z.infer<typeof ServerJwtRefreshMessageSchema>;
+export type ServerPriceUpdateAckMessage = z.infer<typeof ServerPriceUpdateAckMessageSchema>;
 
 // ---------------------------------------------------------------------------
 // Plugin -> Server Messages
@@ -104,6 +112,12 @@ export const PluginPongMessageSchema = z.strictObject({
   ts: z.number().int(),
 });
 
+export const PluginPriceUpdateMessageSchema = z.strictObject({
+  type: z.literal("price_update"),
+  inputTokenPrice: z.string().min(1),
+  outputTokenPrice: z.string().min(1),
+});
+
 export const PluginMessageSchema = z.discriminatedUnion("type", [
   PluginAuthMessageSchema,
   PluginResponseMessageSchema,
@@ -111,6 +125,7 @@ export const PluginMessageSchema = z.discriminatedUnion("type", [
   PluginStreamEndMessageSchema,
   PluginErrorMessageSchema,
   PluginPongMessageSchema,
+  PluginPriceUpdateMessageSchema,
 ]);
 
 export type PluginMessage = z.infer<typeof PluginMessageSchema>;
@@ -120,3 +135,4 @@ export type PluginStreamEventMessage = z.infer<typeof PluginStreamEventMessageSc
 export type PluginStreamEndMessage = z.infer<typeof PluginStreamEndMessageSchema>;
 export type PluginErrorMessage = z.infer<typeof PluginErrorMessageSchema>;
 export type PluginPongMessage = z.infer<typeof PluginPongMessageSchema>;
+export type PluginPriceUpdateMessage = z.infer<typeof PluginPriceUpdateMessageSchema>;
