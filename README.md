@@ -64,7 +64,3 @@ Full documentation including guides, API reference, and troubleshooting is avail
 ## Tech Stack
 
 TypeScript, Node.js, WebSocket, Zod 4, viem
-
-## License
-
-MIT
