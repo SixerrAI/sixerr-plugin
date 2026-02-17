@@ -24,11 +24,10 @@ export async function handleIncomingRequest(
     // Clone the body to avoid mutating the original
     const forwardBody = { ...(body as Record<string, unknown>) };
 
-    // Handle "default" model sentinel: replace with the agent's configured
-    // model since OpenClaw requires a model string in the request body
-    if (forwardBody.model === "default" || !forwardBody.model) {
-      forwardBody.model = openClawConfig.defaultModel ?? "kimi-coding/k2p5";
-    }
+    // Override model to the agent identifier — the plugin owner's OpenClaw
+    // agent config determines which LLM to use, not the client request.
+    // This satisfies the required schema field and routes to the correct agent.
+    forwardBody.model = `openclaw/${openClawConfig.agentId ?? "sixerr-default"}`;
 
     const isStreaming = forwardBody.stream === true;
 

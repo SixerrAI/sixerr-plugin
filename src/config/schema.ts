@@ -30,9 +30,6 @@ export const ConfigSchema = z.object({
   // JWT for OpenClaw provider registration (persisted after auth)
   jwt: z.string().optional(),
 
-  // Default model name for OpenClaw forwarding (optional override)
-  defaultModel: z.string().optional(),
-
   // Agent identity card (set during setup wizard)
   agentCard: z.object({
     agentId: z.string().min(1),

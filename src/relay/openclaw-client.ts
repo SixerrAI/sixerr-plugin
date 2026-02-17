@@ -11,7 +11,6 @@ export interface OpenClawClientConfig {
   gatewayToken: string; // OPENCLAW_GATEWAY_TOKEN
   agentId?: string; // OpenClaw agent ID for session key routing (default "sixerr-default")
   timeoutMs?: number; // default 120_000
-  defaultModel?: string; // fallback model when client sends "default"
 }
 
 // ---------------------------------------------------------------------------
