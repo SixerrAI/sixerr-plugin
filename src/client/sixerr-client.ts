@@ -54,6 +54,35 @@ export class SixerrClient {
     if (options.stream) body.stream = true;
     if (options.routing) body.routing = options.routing;
 
+    return this.postWith402Handling(url, JSON.stringify(body), options.maxAmount);
+  }
+
+  /**
+   * Forward a full request body to the Sixerr server, handling x402 payment.
+   * Unlike `respond()`, this passes the body through untouched — useful for
+   * proxying OpenResponses requests that include fields like `instructions`,
+   * `tools`, `max_output_tokens`, etc.
+   */
+  async respondRaw(
+    rawBody: Record<string, unknown>,
+    agentId?: string,
+  ): Promise<Response> {
+    const url = agentId
+      ? `${this.serverUrl}/v1/responses/${agentId}`
+      : `${this.serverUrl}/v1/responses`;
+
+    return this.postWith402Handling(url, JSON.stringify(rawBody));
+  }
+
+  /**
+   * POST to `url` with the given body string. If the server returns 402,
+   * sign a Permit2 payment and retry once.
+   */
+  private async postWith402Handling(
+    url: string,
+    body: string,
+    maxAmountOverride?: string,
+  ): Promise<Response> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
@@ -62,7 +91,7 @@ export class SixerrClient {
     const firstRes = await fetch(url, {
       method: "POST",
       headers,
-      body: JSON.stringify(body),
+      body,
     });
 
     if (firstRes.status !== 402) {
@@ -78,7 +107,7 @@ export class SixerrClient {
       throw new Error("Server returned 402 but no Permit2 payment scheme found");
     }
 
-    const maxAmount = options.maxAmount ?? this.config.maxAmount ?? requirements.maxCost;
+    const maxAmount = maxAmountOverride ?? this.config.maxAmount ?? requirements.maxCost;
     const xPayment = await signPermit2Payment(
       this.config.signer,
       requirements,
@@ -92,7 +121,7 @@ export class SixerrClient {
         ...headers,
         "X-PAYMENT": xPayment,
       },
-      body: JSON.stringify(body),
+      body,
     });
   }
 

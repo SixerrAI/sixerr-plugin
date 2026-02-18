@@ -1,3 +1,4 @@
+import * as http from "node:http";
 import { fileURLToPath } from "node:url";
 import { PluginClient } from "./ws/ws-client.js";
 import { createStatusDisplay } from "./ws/display.js";
@@ -26,6 +27,7 @@ export interface PluginConfig {
 
 export interface PluginHandle {
   client: PluginClient;
+  proxyServer?: http.Server;
   stop: () => void;
 }
 

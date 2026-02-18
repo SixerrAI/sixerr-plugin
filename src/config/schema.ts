@@ -37,6 +37,9 @@ export const ConfigSchema = z.object({
     description: z.string(),
     identitySource: z.enum(["erc8004", "local"]),
   }).optional(),
+
+  // Local HTTP proxy port for OpenClaw integration (default 6166)
+  proxyPort: z.number().int().min(1024).max(65535).optional(),
 });
 
 export type SixerrConfig = z.infer<typeof ConfigSchema>;

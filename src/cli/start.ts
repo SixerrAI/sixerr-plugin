@@ -15,6 +15,9 @@ import type { KeystoreV3 } from "../wallet/keystore.js";
 import { authenticateProgrammatic } from "../auth/programmatic.js";
 import { startPlugin } from "../plugin.js";
 import type { WalletSigner } from "../wallet/types.js";
+import { SixerrClient, createLocalPaymentSigner, createCdpPaymentSigner } from "../client/index.js";
+import { createHttpProxy } from "../proxy/http-proxy.js";
+import type { PaymentSigner } from "../client/types.js";
 
 // ---------------------------------------------------------------------------
 // Start Command
@@ -49,12 +52,14 @@ export async function runStart(): Promise<void> {
   // -------------------------------------------------------------------------
 
   let signer: WalletSigner;
+  let paymentSigner: PaymentSigner;
 
   if (config.walletType === "coinbase") {
     const s = spinner();
     s.start("Connecting to Coinbase wallet...");
     try {
       signer = await createCdpSigner(config.cdpCredentials!);
+      paymentSigner = await createCdpPaymentSigner(config.cdpCredentials!);
       s.stop(`Connected: ${signer.address}`);
     } catch (err) {
       s.stop("Failed to connect wallet");
@@ -80,6 +85,7 @@ export async function runStart(): Promise<void> {
     try {
       const privateKey = decryptKeystore(keystore as KeystoreV3, pwd);
       signer = createLocalSigner(privateKey);
+      paymentSigner = createLocalPaymentSigner(privateKey);
       s.stop(`Wallet unlocked: ${signer.address}`);
     } catch (err) {
       s.stop("Failed to decrypt wallet");
@@ -116,7 +122,25 @@ export async function runStart(): Promise<void> {
   }
 
   // -------------------------------------------------------------------------
-  // 4. Launch WebSocket client
+  // 4. Start local HTTP proxy (x402 signing proxy for OpenClaw integration)
+  // -------------------------------------------------------------------------
+
+  const sixerrClient = new SixerrClient({
+    serverUrl: config.serverUrl,
+    signer: paymentSigner,
+  });
+
+  const proxyPort = config.proxyPort ?? 6166;
+  let proxyServer: import("node:http").Server | undefined;
+  try {
+    proxyServer = await createHttpProxy({ port: proxyPort, client: sixerrClient });
+    log.info(`Local proxy: http://127.0.0.1:${proxyPort}/v1`);
+  } catch (err) {
+    log.warn(`Failed to start local proxy on port ${proxyPort}: ${(err as Error).message}`);
+  }
+
+  // -------------------------------------------------------------------------
+  // 5. Launch WebSocket client
   // -------------------------------------------------------------------------
 
   // Convert HTTP/S server URL to WS/S
@@ -134,15 +158,19 @@ export async function runStart(): Promise<void> {
     agentName: config.agentCard?.name,
     agentDescription: config.agentCard?.description,
   });
+  handle.proxyServer = proxyServer;
 
   outro("Plugin is online. Press Ctrl+C to stop.");
 
   // -------------------------------------------------------------------------
-  // 5. Shutdown handling
+  // 6. Shutdown handling
   // -------------------------------------------------------------------------
 
   const shutdown = () => {
     log.info("Shutting down...");
+    if (proxyServer) {
+      proxyServer.close();
+    }
     handle.stop();
     process.exit(0);
   };
