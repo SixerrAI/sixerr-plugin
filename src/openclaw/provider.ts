@@ -60,16 +60,21 @@ export async function register(api: OpenClawPluginApi): Promise<void> {
   const config = await loadConfig();
   if (!config?.jwt) return;
 
-  const baseUrl = httpUrlFromConfig(config.serverUrl);
-  const providers = await fetchProviderCatalog(baseUrl);
+  const serverUrl = httpUrlFromConfig(config.serverUrl);
+  const providers = await fetchProviderCatalog(serverUrl);
   const models = buildModelList(providers);
+
+  // Point OpenClaw at the local proxy which handles x402 payment signing
+  // transparently. The server URL would return 402s that OpenClaw can't handle.
+  const proxyPort = config.proxyPort ?? 6166;
+  const baseUrl = `http://127.0.0.1:${proxyPort}`;
 
   api.registerProvider({
     id: "sixerr",
     label: "Sixerr",
     models: {
       baseUrl,
-      apiKey: config.jwt,
+      apiKey: "proxy-managed",
       api: "openai-responses",
       models,
     },
