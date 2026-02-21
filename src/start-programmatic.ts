@@ -15,6 +15,7 @@ import {
 import { createHttpProxy } from "./proxy/http-proxy.js";
 import type { PaymentSigner } from "./client/consumer/types.js";
 import type { SixerrConfig } from "./config/schema.js";
+import { resolveInferenceConfig } from "./client/provider/inference/model-resolver.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -56,7 +57,13 @@ export async function startProgrammatic(
   }
 
   // -------------------------------------------------------------------------
-  // 2. Resolve wallet signer
+  // 2. Resolve LLM inference configuration (fail fast before auth/connect)
+  // -------------------------------------------------------------------------
+
+  const inferenceConfig = resolveInferenceConfig();
+
+  // -------------------------------------------------------------------------
+  // 3. Resolve wallet signer
   // -------------------------------------------------------------------------
 
   let signer: WalletSigner;
@@ -131,8 +138,7 @@ export async function startProgrammatic(
   const handle = startPlugin({
     serverUrl: wsUrl,
     jwt: authResult.jwt,
-    openClawToken: config.openClawToken,
-    openClawUrl: config.openClawUrl,
+    inferenceConfig,
     pricing: config.pricing,
     agentName: config.agentCard?.name,
     agentDescription: config.agentCard?.description,

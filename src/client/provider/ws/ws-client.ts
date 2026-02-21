@@ -1,7 +1,7 @@
 import WebSocket from "ws";
 import { ServerMessageSchema, SIXERR_PROTOCOL_VERSION } from "../schemas/protocol.js";
-import type { OpenClawClientConfig } from "../../../relay/openclaw-client.js";
-import { handleIncomingRequest } from "../../../relay/request-forwarder.js";
+import type { InferenceConfig } from "../inference/types.js";
+import { handleIncomingRequest } from "../inference/inference-handler.js";
 import { rawDataToString } from "./raw-data.js";
 import { computeBackoff, DEFAULT_RECONNECT_POLICY, type BackoffPolicy } from "./reconnect.js";
 
@@ -18,7 +18,7 @@ export interface PluginClientConfig {
   onJwtRefresh?: (newJwt: string) => void; // callback when server sends a refresh
   onPriceUpdateAck?: (pricing: { inputTokenPrice: string; outputTokenPrice: string }) => void;
   reconnectPolicy?: BackoffPolicy; // defaults to DEFAULT_RECONNECT_POLICY
-  openClawConfig: OpenClawClientConfig; // OpenClaw Gateway connection settings
+  inferenceConfig: InferenceConfig; // Direct LLM inference configuration
   /** Optional per-token pricing declaration (DISC-01). Sent in auth handshake. */
   pricing?: {
     inputTokenPrice: string;  // Atomic USDC per token
@@ -200,11 +200,11 @@ export class PluginClient {
         break;
 
       case "request": {
-        // Forward to OpenClaw asynchronously -- do not await in message handler
+        // Forward to LLM asynchronously -- do not await in message handler
         handleIncomingRequest(
           msg.id,
           msg.body,
-          this.config.openClawConfig,
+          this.config.inferenceConfig,
           (response) => this.sendMessage(response),
         ).then(() => {
           this.requestCount++;

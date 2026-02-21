@@ -18,6 +18,7 @@ import type { WalletSigner } from "../wallet/types.js";
 import { SixerrClient, createLocalPaymentSigner, createCdpPaymentSigner } from "../client/consumer/index.js";
 import { createHttpProxy } from "../proxy/http-proxy.js";
 import type { PaymentSigner } from "../client/consumer/types.js";
+import { resolveInferenceConfig } from "../client/provider/inference/model-resolver.js";
 
 // ---------------------------------------------------------------------------
 // Start Command
@@ -48,7 +49,14 @@ export async function runStart(): Promise<void> {
   log.info(`Server: ${config.serverUrl}`);
 
   // -------------------------------------------------------------------------
-  // 2. Resolve wallet signer (BEFORE challenge fetch — nonce expiry safe)
+  // 2. Resolve LLM inference configuration (fail fast before auth/connect)
+  // -------------------------------------------------------------------------
+
+  const inferenceConfig = resolveInferenceConfig();
+  log.info(`Model: ${inferenceConfig.provider}/${inferenceConfig.model}`);
+
+  // -------------------------------------------------------------------------
+  // 3. Resolve wallet signer (BEFORE challenge fetch — nonce expiry safe)
   // -------------------------------------------------------------------------
 
   let signer: WalletSigner;
@@ -163,8 +171,7 @@ export async function runStart(): Promise<void> {
   const handle = startPlugin({
     serverUrl: wsUrl,
     jwt: authJwt,
-    openClawToken: config.openClawToken,
-    openClawUrl: config.openClawUrl,
+    inferenceConfig,
     pricing: config.pricing,
     agentName: config.agentCard?.name,
     agentDescription: config.agentCard?.description,
