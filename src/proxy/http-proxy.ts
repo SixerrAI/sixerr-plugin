@@ -1,6 +1,6 @@
 import * as http from "node:http";
 import { Readable } from "node:stream";
-import type { SixerrClient } from "../client/sixerr-client.js";
+import type { SixerrClient } from "../client/consumer/sixerr-client.js";
 
 // ---------------------------------------------------------------------------
 // Local HTTP Proxy

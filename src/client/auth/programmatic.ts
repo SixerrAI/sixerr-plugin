@@ -1,4 +1,4 @@
-import type { WalletSigner } from "../wallet/types.js";
+import type { WalletSigner } from "../../wallet/types.js";
 
 // ---------------------------------------------------------------------------
 // Types

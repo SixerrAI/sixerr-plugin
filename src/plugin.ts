@@ -1,7 +1,8 @@
 import * as http from "node:http";
 import { fileURLToPath } from "node:url";
-import { PluginClient } from "./ws/ws-client.js";
-import { createStatusDisplay } from "./ws/display.js";
+import { PluginClient } from "./client/provider/ws/ws-client.js";
+import { createStatusDisplay } from "./client/provider/ws/display.js";
+import type { InferenceConfig } from "./client/provider/inference/types.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -11,9 +12,7 @@ export interface PluginConfig {
   serverUrl: string; // ws://host:port or wss://host:port
   jwt: string; // JWT token for WebSocket auth
   sixerrServerUrl?: string; // HTTPS URL for setup flow (e.g. "https://sixerr.ai")
-  openClawUrl?: string; // default "http://localhost:18789"
-  openClawToken: string; // OPENCLAW_GATEWAY_TOKEN (required)
-  openClawTimeoutMs?: number; // default 120_000
+  inferenceConfig: InferenceConfig; // Direct LLM inference configuration
   /** Optional per-token pricing for marketplace discovery (DISC-01). */
   pricing?: {
     inputTokenPrice: string;  // Atomic USDC per token
@@ -53,11 +52,7 @@ export function startPlugin(config: PluginConfig): PluginHandle {
       // JWT refresh is handled in-memory by the WS client.
       // No persistence needed -- the start command re-authenticates each session.
     },
-    openClawConfig: {
-      gatewayUrl: config.openClawUrl ?? "http://localhost:18789",
-      gatewayToken: config.openClawToken,
-      timeoutMs: config.openClawTimeoutMs,
-    },
+    inferenceConfig: config.inferenceConfig,
     // Phase 7: Pass pricing config if provided
     pricing: config.pricing,
     // Phase 11: Pass agent identity if provided
