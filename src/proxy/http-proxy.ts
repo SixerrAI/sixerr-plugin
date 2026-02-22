@@ -9,9 +9,9 @@ import type { SixerrClient } from "../client/consumer/sixerr-client.js";
 /**
  * Create a local HTTP proxy that handles x402 Permit2 signing transparently.
  *
- * OpenClaw (or any HTTP client) can POST OpenResponses requests to
- * `http://127.0.0.1:{port}/v1/responses` — the proxy forwards them to the
- * Sixerr server with payment signatures injected automatically.
+ * OpenClaw (or any HTTP client) can POST Chat Completions requests to
+ * `http://127.0.0.1:{port}/v1/chat/completions` — the proxy forwards them to
+ * the Sixerr server with payment signatures injected automatically.
  *
  * Binds to 127.0.0.1 only — no network exposure.
  */
@@ -65,11 +65,11 @@ async function handleRequest(
     return;
   }
 
-  // POST /v1/responses or /v1/responses/:agentId
-  const responsesMatch = method === "POST" && url.match(/^\/v1\/responses(?:\/([^/?]+))?$/);
-  if (responsesMatch) {
-    const agentId = responsesMatch[1]; // undefined if no segment
-    await handleResponses(client, req, res, agentId);
+  // POST /v1/chat/completions or /v1/chat/completions/:agentId
+  const completionsMatch = method === "POST" && url.match(/^\/v1\/chat\/completions(?:\/([^/?]+))?$/);
+  if (completionsMatch) {
+    const agentId = completionsMatch[1]; // undefined if no segment
+    await handleCompletions(client, req, res, agentId);
     return;
   }
 
@@ -79,10 +79,10 @@ async function handleRequest(
 }
 
 // ---------------------------------------------------------------------------
-// POST /v1/responses handler
+// POST /v1/chat/completions handler
 // ---------------------------------------------------------------------------
 
-async function handleResponses(
+async function handleCompletions(
   client: SixerrClient,
   req: http.IncomingMessage,
   res: http.ServerResponse,

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  CreateResponseBodySchema,
+  ChatCompletionRequestSchema,
   ServerMessageSchema,
   PluginMessageSchema,
   SCHEMA_VERSION,
@@ -30,7 +30,7 @@ describe("Plugin receives server messages (ServerMessageSchema)", () => {
     const result = ServerMessageSchema.safeParse({
       type: "request",
       id: "req-1",
-      body: { model: "test", input: "Hello" },
+      body: { model: "test", messages: [{ role: "user", content: "Hello" }] },
     });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -137,8 +137,8 @@ describe("Plugin sends messages (PluginMessageSchema)", () => {
       type: "stream_end",
       id: "req-1",
       usage: {
-        input_tokens: 10,
-        output_tokens: 20,
+        prompt_tokens: 10,
+        completion_tokens: 20,
         total_tokens: 30,
       },
     });
@@ -192,24 +192,106 @@ describe("Plugin sends messages (PluginMessageSchema)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// CreateResponseBodySchema in plugin context
+// ChatCompletionRequestSchema in plugin context
 // ---------------------------------------------------------------------------
 
-describe("CreateResponseBodySchema in plugin context", () => {
+describe("ChatCompletionRequestSchema in plugin context", () => {
   it("accepts minimal valid request", () => {
-    const result = CreateResponseBodySchema.safeParse({
-      model: "openclaw/main",
-      input: "Hello",
+    const result = ChatCompletionRequestSchema.safeParse({
+      model: "anthropic/claude-sonnet-4-5-20250929",
+      messages: [{ role: "user", content: "Hello" }],
     });
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.model).toBe("openclaw/main");
-      expect(result.data.input).toBe("Hello");
+      expect(result.data.model).toBe("anthropic/claude-sonnet-4-5-20250929");
+      expect(result.data.messages).toHaveLength(1);
     }
   });
 
+  it("accepts request with system message", () => {
+    const result = ChatCompletionRequestSchema.safeParse({
+      model: "default",
+      messages: [
+        { role: "system", content: "You are helpful." },
+        { role: "user", content: "Hello" },
+      ],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.messages).toHaveLength(2);
+    }
+  });
+
+  it("accepts request with tools", () => {
+    const result = ChatCompletionRequestSchema.safeParse({
+      model: "default",
+      messages: [{ role: "user", content: "What is the weather?" }],
+      tools: [{
+        type: "function",
+        function: {
+          name: "get_weather",
+          description: "Get the weather",
+          parameters: { type: "object", properties: { location: { type: "string" } } },
+        },
+      }],
+      tool_choice: "auto",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts request with tool results", () => {
+    const result = ChatCompletionRequestSchema.safeParse({
+      model: "default",
+      messages: [
+        { role: "user", content: "What is the weather?" },
+        { role: "assistant", content: null, tool_calls: [{ id: "tc1", type: "function", function: { name: "get_weather", arguments: '{"location":"NYC"}' } }] },
+        { role: "tool", content: '{"temp":72}', tool_call_id: "tc1" },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts request with max_tokens", () => {
+    const result = ChatCompletionRequestSchema.safeParse({
+      model: "default",
+      messages: [{ role: "user", content: "Hello" }],
+      max_tokens: 1024,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.max_tokens).toBe(1024);
+    }
+  });
+
+  it("accepts request with Sixerr marketplace extensions", () => {
+    const result = ChatCompletionRequestSchema.safeParse({
+      model: "default",
+      messages: [{ role: "user", content: "Hello" }],
+      routing: "cheapest",
+      max_input_token_price: "100",
+      max_output_token_price: "200",
+      bid_timeout_seconds: 30,
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("rejects malformed request (missing model)", () => {
-    const result = CreateResponseBodySchema.safeParse({
+    const result = ChatCompletionRequestSchema.safeParse({
+      messages: [{ role: "user", content: "Hello" }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects malformed request (missing messages)", () => {
+    const result = ChatCompletionRequestSchema.safeParse({
+      model: "default",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects old OpenResponses format (input field)", () => {
+    const result = ChatCompletionRequestSchema.safeParse({
+      model: "default",
       input: "Hello",
     });
     expect(result.success).toBe(false);
