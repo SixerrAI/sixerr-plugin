@@ -62,7 +62,7 @@ export interface ProgrammaticSetupResult {
  * Non-interactive plugin setup. Creates wallet, writes config to
  * ~/.sixerr/config.json, and returns the result.
  *
- * Designed for agents that need to self-provision as Sixerr providers
+ * Designed for agents that need to self-provision as Sixerr suppliers
  * without human interaction.
  */
 export async function setupProgrammatic(

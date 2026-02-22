@@ -12,7 +12,7 @@ import {
  *
  * Required env vars:
  *   SIXERR_WALLET_TYPE          — "coinbase" | "local" | "imported"
- *   SIXERR_AGENT_NAME           — Display name for the provider
+ *   SIXERR_AGENT_NAME           — Display name for the supplier
  *
  * Conditional env vars:
  *   CDP_API_KEY_ID               — Required when walletType=coinbase
@@ -22,7 +22,7 @@ import {
  *   SIXERR_KEYSTORE_PASSWORD     — Required when walletType=local|imported
  *
  * Optional env vars:
- *   SIXERR_AGENT_DESCRIPTION     — Provider description
+ *   SIXERR_AGENT_DESCRIPTION     — Supplier description
  *   SIXERR_AGENT_ID              — Explicit agentId (defaults to wallet address)
  *   SIXERR_IDENTITY_SOURCE       — "erc8004" | "local" (default: "local")
  *   SIXERR_INPUT_TOKEN_PRICE     — Atomic USDC per input token (default: "1")

@@ -11,7 +11,7 @@ import { computeBackoff, DEFAULT_RECONNECT_POLICY, type BackoffPolicy } from "./
 
 export type ConnectionStatus = "connecting" | "authenticating" | "connected" | "reconnecting" | "disconnected";
 
-export interface PluginClientConfig {
+export interface SupplierClientConfig {
   serverUrl: string; // ws://host:port
   jwt: string; // JWT token for auth
   onStatusChange: (status: ConnectionStatus, pluginId: string | null, requestCount: number) => void;
@@ -31,10 +31,10 @@ export interface PluginClientConfig {
 }
 
 // ---------------------------------------------------------------------------
-// PluginClient
+// SupplierClient
 // ---------------------------------------------------------------------------
 
-export class PluginClient {
+export class SupplierClient {
   private ws: WebSocket | null = null;
   private status: ConnectionStatus = "disconnected";
   private reconnectAttempt = 0;
@@ -44,7 +44,7 @@ export class PluginClient {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly policy: BackoffPolicy;
 
-  constructor(private config: PluginClientConfig) {
+  constructor(private config: SupplierClientConfig) {
     this.policy = config.reconnectPolicy ?? DEFAULT_RECONNECT_POLICY;
   }
 

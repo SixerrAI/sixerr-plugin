@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { loadConfig } from "../config/store.js";
-import { fetchProviderCatalog, buildModelList } from "./discovery.js";
+import { fetchSupplierCatalog, buildModelList } from "./discovery.js";
 
 // ---------------------------------------------------------------------------
 // Types (minimal OpenClaw plugin API surface)
@@ -52,7 +52,7 @@ function httpUrlFromConfig(serverUrl: string): string {
  * Reads config from ~/.sixerr/config.json. If no JWT is present
  * (plugin hasn't authenticated yet), silently skips registration.
  *
- * Model list is fetched best-effort from GET /v1/providers. Stale data
+ * Model list is fetched best-effort from GET /v1/suppliers. Stale data
  * only affects autocomplete — OpenClaw sends any model string and the
  * server returns 404 for unknown agents.
  */
@@ -61,8 +61,8 @@ export async function register(api: OpenClawPluginApi): Promise<void> {
   if (!config?.jwt) return;
 
   const serverUrl = httpUrlFromConfig(config.serverUrl);
-  const providers = await fetchProviderCatalog(serverUrl);
-  const models = buildModelList(providers);
+  const suppliers = await fetchSupplierCatalog(serverUrl);
+  const models = buildModelList(suppliers);
 
   // Point OpenClaw at the local proxy which handles x402 payment signing
   // transparently. The server URL would return 402s that OpenClaw can't handle.

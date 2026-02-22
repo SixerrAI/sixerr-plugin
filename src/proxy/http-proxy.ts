@@ -52,12 +52,12 @@ async function handleRequest(
   const url = req.url ?? "/";
   const method = req.method ?? "GET";
 
-  // GET /v1/providers
-  if (method === "GET" && url === "/v1/providers") {
+  // GET /v1/suppliers
+  if (method === "GET" && url === "/v1/suppliers") {
     try {
-      const providers = await client.listProviders();
+      const suppliers = await client.listSuppliers();
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(providers));
+      res.end(JSON.stringify(suppliers));
     } catch (err) {
       res.writeHead(502, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: (err as Error).message }));

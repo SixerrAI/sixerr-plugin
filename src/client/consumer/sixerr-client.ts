@@ -139,12 +139,12 @@ export class SixerrClient {
   }
 
   /**
-   * List available providers from the server catalog.
+   * List available suppliers from the server catalog.
    */
-  async listProviders(): Promise<unknown> {
-    const res = await fetch(`${this.serverUrl}/v1/providers`);
+  async listSuppliers(): Promise<unknown> {
+    const res = await fetch(`${this.serverUrl}/v1/suppliers`);
     if (!res.ok) {
-      throw new Error(`Failed to fetch providers (${res.status})`);
+      throw new Error(`Failed to fetch suppliers (${res.status})`);
     }
     return res.json();
   }

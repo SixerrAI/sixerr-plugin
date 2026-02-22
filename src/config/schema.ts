@@ -27,7 +27,7 @@ export const ConfigSchema = z.object({
   openClawToken: z.string().min(1),
   openClawUrl: z.string().url().default("http://localhost:18789"),
 
-  // JWT for OpenClaw provider registration (persisted after auth)
+  // JWT for OpenClaw supplier registration (persisted after auth)
   jwt: z.string().optional(),
 
   // Agent identity card (set during setup wizard)

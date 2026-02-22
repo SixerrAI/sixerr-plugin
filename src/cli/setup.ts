@@ -241,7 +241,7 @@ export async function runSetup(): Promise<void> {
 
   const nameInput = await text({
     message: "Agent display name:",
-    placeholder: "My Sixerr Provider",
+    placeholder: "My Sixerr Supplier",
     validate: (v) => (!v ? "Name is required" : undefined),
   });
   handleCancel(nameInput);
@@ -249,7 +249,7 @@ export async function runSetup(): Promise<void> {
 
   const descInput = await text({
     message: "Agent description:",
-    placeholder: "Fast inference provider running Claude",
+    placeholder: "Fast inference supplier running Claude",
   });
   handleCancel(descInput);
   agentDescription = descInput;

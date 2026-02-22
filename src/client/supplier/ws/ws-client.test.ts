@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
 import { WebSocketServer, WebSocket as WsWebSocket } from "ws";
-import { PluginClient, type ConnectionStatus, type PluginClientConfig } from "./ws-client.js";
+import { SupplierClient, type ConnectionStatus, type SupplierClientConfig } from "./ws-client.js";
 import { SIXERR_PROTOCOL_VERSION } from "../schemas/protocol.js";
 
 // ---------------------------------------------------------------------------
@@ -66,11 +66,11 @@ function delay(ms: number): Promise<void> {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("PluginClient", () => {
+describe("SupplierClient", () => {
   let wss: WebSocketServer;
   let port: number;
   let url: string;
-  let client: PluginClient;
+  let client: SupplierClient;
   let statusChanges: Array<{ status: ConnectionStatus; pluginId: string | null; requestCount: number }>;
 
   beforeEach(async () => {
@@ -88,8 +88,8 @@ describe("PluginClient", () => {
     await new Promise<void>((resolve) => wss.close(() => resolve()));
   });
 
-  function createClient(overrides?: Partial<PluginClientConfig>): PluginClient {
-    client = new PluginClient({
+  function createClient(overrides?: Partial<SupplierClientConfig>): SupplierClient {
+    client = new SupplierClient({
       serverUrl: url,
       jwt: "eyJhbGciOiJFUzI1NiJ9.test-token",
       onStatusChange: (status, pluginId, requestCount) => {

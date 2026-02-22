@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// Provider catalog client — fetches connected providers from the server
+// Supplier catalog client — fetches connected suppliers from the server
 // ---------------------------------------------------------------------------
 
-export interface DiscoveredProvider {
+export interface DiscoveredSupplier {
   agentId: string;
   available: boolean;
   pricing: {
@@ -17,37 +17,37 @@ export interface ModelEntry {
 }
 
 /**
- * Fetch the list of connected providers from the Sixerr server.
+ * Fetch the list of connected suppliers from the Sixerr server.
  * Best-effort: returns empty array on network/parse errors.
  */
-export async function fetchProviderCatalog(
+export async function fetchSupplierCatalog(
   serverHttpUrl: string,
-): Promise<DiscoveredProvider[]> {
+): Promise<DiscoveredSupplier[]> {
   try {
-    const url = `${serverHttpUrl.replace(/\/$/, "")}/v1/providers`;
+    const url = `${serverHttpUrl.replace(/\/$/, "")}/v1/suppliers`;
     const res = await fetch(url);
     if (!res.ok) return [];
 
-    const data = (await res.json()) as { providers?: DiscoveredProvider[] };
-    return data.providers ?? [];
+    const data = (await res.json()) as { suppliers?: DiscoveredSupplier[] };
+    return data.suppliers ?? [];
   } catch {
     return [];
   }
 }
 
 /**
- * Build OpenClaw model entries from discovered providers.
+ * Build OpenClaw model entries from discovered suppliers.
  * Always includes "auto" as the first entry.
  */
-export function buildModelList(providers: DiscoveredProvider[]): ModelEntry[] {
+export function buildModelList(suppliers: DiscoveredSupplier[]): ModelEntry[] {
   const models: ModelEntry[] = [
     { id: "auto", name: "Auto (cheapest available)" },
   ];
 
-  for (const provider of providers) {
+  for (const supplier of suppliers) {
     models.push({
-      id: provider.agentId,
-      name: provider.agentId,
+      id: supplier.agentId,
+      name: supplier.agentId,
     });
   }
 

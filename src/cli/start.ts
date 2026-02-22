@@ -18,7 +18,7 @@ import type { WalletSigner } from "../wallet/types.js";
 import { SixerrClient, createLocalPaymentSigner, createCdpPaymentSigner } from "../client/consumer/index.js";
 import { createHttpProxy } from "../proxy/http-proxy.js";
 import type { PaymentSigner } from "../client/consumer/types.js";
-import { resolveInferenceConfig } from "../client/provider/inference/model-resolver.js";
+import { resolveInferenceConfig } from "../client/supplier/inference/model-resolver.js";
 
 // ---------------------------------------------------------------------------
 // Start Command
@@ -132,7 +132,7 @@ export async function runStart(): Promise<void> {
       log.info(`Agent ID: ${authResult.agentId}`);
     }
 
-    // Persist JWT to config for OpenClaw provider registration
+    // Persist JWT to config for OpenClaw supplier registration
     await saveConfig({ ...config, jwt: authJwt });
   } catch (err) {
     authSpinner.stop("Authentication failed");

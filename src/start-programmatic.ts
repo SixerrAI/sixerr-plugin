@@ -15,7 +15,7 @@ import {
 import { createHttpProxy } from "./proxy/http-proxy.js";
 import type { PaymentSigner } from "./client/consumer/types.js";
 import type { SixerrConfig } from "./config/schema.js";
-import { resolveInferenceConfig } from "./client/provider/inference/model-resolver.js";
+import { resolveInferenceConfig } from "./client/supplier/inference/model-resolver.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -39,7 +39,7 @@ export interface StartProgrammaticOptions {
  * Loads config, resolves wallet, authenticates with the server, starts
  * the HTTP proxy and WebSocket client, and returns a PluginHandle.
  *
- * Designed for agents that need to self-start as Sixerr providers
+ * Designed for agents that need to self-start as Sixerr suppliers
  * without a TTY or human interaction.
  */
 export async function startProgrammatic(

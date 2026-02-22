@@ -1,8 +1,8 @@
 import * as http from "node:http";
 import { fileURLToPath } from "node:url";
-import { PluginClient } from "./client/provider/ws/ws-client.js";
-import { createStatusDisplay } from "./client/provider/ws/display.js";
-import type { InferenceConfig } from "./client/provider/inference/types.js";
+import { SupplierClient } from "./client/supplier/ws/ws-client.js";
+import { createStatusDisplay } from "./client/supplier/ws/display.js";
+import type { InferenceConfig } from "./client/supplier/inference/types.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,7 +25,7 @@ export interface PluginConfig {
 }
 
 export interface PluginHandle {
-  client: PluginClient;
+  client: SupplierClient;
   proxyServer?: http.Server;
   stop: () => void;
 }
@@ -44,7 +44,7 @@ export function startPlugin(config: PluginConfig): PluginHandle {
 
   const display = createStatusDisplay();
 
-  const client = new PluginClient({
+  const client = new SupplierClient({
     serverUrl: config.serverUrl,
     jwt: config.jwt,
     onStatusChange: display.update,
