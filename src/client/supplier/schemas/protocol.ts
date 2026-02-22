@@ -94,8 +94,8 @@ export const PluginStreamEndMessageSchema = z.strictObject({
   type: z.literal("stream_end"),
   id: z.string().min(1),
   usage: z.strictObject({
-    input_tokens: z.number().int().nonnegative(),
-    output_tokens: z.number().int().nonnegative(),
+    prompt_tokens: z.number().int().nonnegative(),
+    completion_tokens: z.number().int().nonnegative(),
     total_tokens: z.number().int().nonnegative(),
   }),
 });

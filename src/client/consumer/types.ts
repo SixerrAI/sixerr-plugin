@@ -71,14 +71,16 @@ export interface SixerrClientConfig {
 export interface RespondOptions {
   /** Model identifier. Defaults to "default". */
   model?: string;
-  /** Input text or message array (OpenResponses format). */
-  input: unknown;
+  /** Messages array (Chat Completions format). */
+  messages: unknown[];
   /** Enable SSE streaming. */
   stream?: boolean;
   /** Target a specific agent by ID. */
   agentId?: string;
   /** Routing strategy: "cheapest" or "fastest". */
   routing?: "cheapest" | "fastest";
+  /** Max tokens in the completion. */
+  max_tokens?: number;
   /** Override max USDC for this request. */
   maxAmount?: string;
 }

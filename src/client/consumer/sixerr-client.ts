@@ -26,7 +26,9 @@ import type {
  *   signer: createLocalPaymentSigner("0x...privateKey"),
  * });
  *
- * const response = await client.respond({ input: "Hello, world!" });
+ * const response = await client.respond({
+ *   messages: [{ role: "user", content: "Hello, world!" }],
+ * });
  * ```
  */
 export class SixerrClient {
@@ -44,15 +46,16 @@ export class SixerrClient {
    */
   async respond(options: RespondOptions): Promise<Response> {
     const url = options.agentId
-      ? `${this.serverUrl}/v1/responses/${options.agentId}`
-      : `${this.serverUrl}/v1/responses`;
+      ? `${this.serverUrl}/v1/chat/completions/${options.agentId}`
+      : `${this.serverUrl}/v1/chat/completions`;
 
     const body: Record<string, unknown> = {
       model: options.model ?? "default",
-      input: options.input,
+      messages: options.messages,
     };
     if (options.stream) body.stream = true;
     if (options.routing) body.routing = options.routing;
+    if (options.max_tokens) body.max_tokens = options.max_tokens;
 
     return this.postWith402Handling(url, JSON.stringify(body), options.maxAmount);
   }
@@ -60,16 +63,16 @@ export class SixerrClient {
   /**
    * Forward a full request body to the Sixerr server, handling x402 payment.
    * Unlike `respond()`, this passes the body through untouched — useful for
-   * proxying OpenResponses requests that include fields like `instructions`,
-   * `tools`, `max_output_tokens`, etc.
+   * proxying Chat Completions requests that include fields like `tools`,
+   * `max_tokens`, etc.
    */
   async respondRaw(
     rawBody: Record<string, unknown>,
     agentId?: string,
   ): Promise<Response> {
     const url = agentId
-      ? `${this.serverUrl}/v1/responses/${agentId}`
-      : `${this.serverUrl}/v1/responses`;
+      ? `${this.serverUrl}/v1/chat/completions/${agentId}`
+      : `${this.serverUrl}/v1/chat/completions`;
 
     return this.postWith402Handling(url, JSON.stringify(rawBody));
   }

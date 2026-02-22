@@ -32,7 +32,7 @@ export interface OpenClawPluginApi {
 // ---------------------------------------------------------------------------
 
 /**
- * Derive the HTTP base URL for OpenResponses API calls from the config's
+ * Derive the HTTP base URL for Chat Completions API calls from the config's
  * server URL (which may be WS or HTTP).
  */
 function httpUrlFromConfig(serverUrl: string): string {
